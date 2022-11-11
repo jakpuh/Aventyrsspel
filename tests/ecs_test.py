@@ -1,6 +1,7 @@
 import sys
-sys.path.insert(1, '/home/jakpuh/Documents/school/Aventyrsspel/core')
-import ecs 
+
+sys.path.insert(1, 'core')
+import ecs
 
 
 class C_transform(ecs.Component):
