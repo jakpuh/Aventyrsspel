@@ -29,6 +29,7 @@ class C_player(core.Component):
     def __init__(self, velocity, dir, len):
         self.velocity = velocity
         self.dir = dir
+        self.base_dir = dir
         self.len = len
 
 class C_lifetime(core.Component):
@@ -68,7 +69,7 @@ class S_player(core.System):
                 tail.add_component(C_lifetime(0))
                 tail.add_component(C_sprite("@"))
                 tail.add_component(C_transform(tran_comp.x, tran_comp.y))
-                self.event_handler.dispatch_event(Move_event(self))
+                self.event_handler.dispatch_event(Move_event(entity))
                 self.len += 1
             tran_comp.x = next_pos_x
             tran_comp.y = next_pos_y
@@ -76,13 +77,13 @@ class S_player(core.System):
     def on_keypress(self, event):
         for entity in self.registered_entities:
             [move_comp] = entity.query_components([C_player])
-            if event.key == ord('w') and move_comp.dir != [0, 1]:
+            if event.key == ord('w') and move_comp.base_dir != [0, 1]:
                 move_comp.dir = [0, -1]
-            elif event.key == ord('d') and move_comp.dir != [-1, 0]:
+            elif event.key == ord('d') and move_comp.base_dir != [-1, 0]:
                 move_comp.dir = [1, 0]
-            elif event.key == ord('s') and move_comp.dir != [0, -1]:
+            elif event.key == ord('s') and move_comp.base_dir != [0, -1]:
                 move_comp.dir = [0, 1]
-            elif event.key == ord('a') and move_comp.dir != [1, 0]:
+            elif event.key == ord('a') and move_comp.base_dir != [1, 0]:
                 move_comp.dir = [-1, 0]
 
     def on_collision(self, event):
@@ -101,6 +102,11 @@ class S_player(core.System):
                 tail.add_component(C_lifetime(0))
                 tail.add_component(C_sprite("@"))
                 tail.add_component(C_transform(player.x, player.y))
+
+    def on_move(self, event):
+        player_comp_lst = event.entity.query_components([C_player])
+        if player_comp_lst != []:
+            player_comp_lst[0].base_dir = player_comp_lst[0].dir
 
 class S_lifetime(core.System):
     def __init__(self):
@@ -130,7 +136,7 @@ class S_collision(core.System):
         self.event_handler = event_handler
         self.component_mask = [C_transform]
 
-    # slow, check the one_move event instead
+    # slow, listen on one_move event instead
     def run(self, dt):
         new_events = []
         for i in range(len(self.registered_entities)):
@@ -151,7 +157,6 @@ class S_collision(core.System):
 
 class Apple_handler():
     def __init__(self, event_system, world):
-        super().__init__()
         self.event_system = event_system
         self.world = world
 
@@ -189,6 +194,7 @@ event_system.subscribe_event(core.Key_event(None), player_system.on_keypress)
 event_system.subscribe_event(Move_event(None), lifetime_system.on_move)
 event_system.subscribe_event(Collision_event(None), player_system.on_collision)
 event_system.subscribe_event(Collision_event(None), apple_handler.on_collision)
+event_system.subscribe_event(Move_event(None), player_system.on_move)
 
 dt = 0
 while True:
