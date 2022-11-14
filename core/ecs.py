@@ -8,12 +8,14 @@ class System():
     '''
     Base class which every system will inheriet from.
     '''
-    component_mask = []
-    registered_entities = []
+    def __init__(self):
+        self.component_mask = []
+        self.registered_entities = []
+        self.world = None
 
     def register_entity(self, entity):
-        for entity_id in self.registered_entities:
-            if entity_id == entity.entity_id:
+        for current_entity in self.registered_entities:
+            if current_entity.entity_id == entity.entity_id:
                 return
         self.registered_entities.append(entity)
 
@@ -92,8 +94,6 @@ class World():
         for component_type in self.components:
             self.remove_component(entity, component_type)
         self.entities.remove(entity)
-        for system in self.systems:
-            system.unregister_entity(entity)
 
     # OBS: if entity already has a component with the same type, then the old component will get replaced
     def add_component(self, entity, component):
@@ -107,6 +107,7 @@ class World():
                 self.components[component_type].remove((current_entity,current_component))
                 break
         self.components[component_type].append((entity, component))
+
         for system in self.systems:
             if self._entity_conforms_with_mask(entity, system.get_mask()):
                 system.register_entity(self.Entity_wrapper(entity, self))
@@ -120,7 +121,7 @@ class World():
         
         # TODO: Make faster.
         # Instead of using remove we can swap the found entity-component pair with the last one in the list and decrement the list size
-        # This precedure take O(n) instead of O(n^2)
+        # This procedure takes O(n) instead of O(n^2)
         for current_entity,current_component in self.components[component_type]:
             if (current_entity == entity):
                 self.components[component_type].remove((current_entity, current_component))
@@ -145,7 +146,10 @@ class World():
     def add_system(self, system):
         if system in self.systems:
             return
+        system.world = self
         self.systems.append(system)
+        # TODO: add entities to the system
+        return system
 
     def remove_system(self, system_type):
         for system in self.systems:
