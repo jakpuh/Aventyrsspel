@@ -186,7 +186,7 @@ player_entity.add_component(C_sprite(["#"]))
 player_entity.add_component(C_player(0.5, [1, 0], 1))
 
 apple_entity = ecs.create_entity()
-apple_entity.add_component(C_transform(0.45, 0.5))
+apple_entity.add_component(C_transform(0.45, 0.45))
 apple_entity.add_component(C_sprite("$"))
 apple_entity.add_component(C_apple())
 

@@ -47,7 +47,7 @@ class Screen_wrapper(metaclass=Singleton):
 
     def rel_to_abs(self, x, y):
         [height, width] = self.get_dimension()
-        return [int(x * width), int(y * height)]
+        return [int(x * (width - 1)), int(y * (height - 1))]
 
     def poll_events(self, event_handler):
         keypress = self.stdscr.getch()
