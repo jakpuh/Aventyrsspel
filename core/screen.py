@@ -35,9 +35,7 @@ class Screen_wrapper(metaclass=Singleton):
         curses.endwin()
 
     def draw_texture(self, texture, rel_x, rel_y):
-        height, width = self.stdscr.getmaxyx()
-        abs_y = int(rel_y * height)
-        abs_x = int(rel_x * width)
+        [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y)
         for texture_row in texture:
             self.stdscr.addstr(abs_y, abs_x, texture_row)
             abs_y += 1
@@ -47,7 +45,7 @@ class Screen_wrapper(metaclass=Singleton):
 
     def rel_to_abs(self, x, y):
         [height, width] = self.get_dimension()
-        return [int(x * (width - 1)), int(y * (height - 1))]
+        return [int(x * (width - 2)), int(y * (height - 2))]
 
     def poll_events(self, event_handler):
         keypress = self.stdscr.getch()
