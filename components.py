@@ -1,3 +1,7 @@
+
+import sys
+
+sys.path.insert(1, 'core')
 import core
 
 class C_player(core.Component):
@@ -9,8 +13,8 @@ class C_transform(core.Component):
         self.y = y
 
 class C_sprite(core.Component):
-    def __init__(self):
-        pass
+    def __init__(self, texture):
+        self.texture = texture
 
 class C_hitbox(core.Component):
     def __init__(self, w, h):
@@ -19,4 +23,4 @@ class C_hitbox(core.Component):
 
 class C_health(core.Component):
     def __init__(self, health):
-        self.healt = health  
+        self.health = health  

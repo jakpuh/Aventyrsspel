@@ -182,7 +182,7 @@ apple_handler = Apple_handler(event_system, ecs)
 
 player_entity = ecs.create_entity()
 player_entity.add_component(C_transform(0.5, 0.5))
-player_entity.add_component(C_sprite(["#"]))
+player_entity.add_component(C_sprite(["🙁"]))
 player_entity.add_component(C_player(0.5, [1, 0], 1))
 
 apple_entity = ecs.create_entity()
@@ -200,7 +200,6 @@ dt = 0
 while True:
     start = time.time()
     core.Screen_wrapper().poll_events(event_system)
-
     core.Screen_wrapper().refresh()
     ecs.run(dt)
 
