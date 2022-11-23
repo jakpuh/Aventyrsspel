@@ -20,7 +20,7 @@ class Scene():
         entity.add_component(comp.C_transform(0.5, 0.5))
         entity.add_component(comp.C_hitbox(1, 1))
         entity.add_component(comp.C_health(10))
-        entity.add_component(comp.C_sprite("#"))
+        entity.add_component(comp.C_sprite([" ___ ","|0 0|","|~~~|"]))
 
         #self.event_handler.subscribe_event(evt.Tick_event(), render_system.on_tick)
         self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)
