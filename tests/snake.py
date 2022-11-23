@@ -67,7 +67,7 @@ class S_player(core.System):
             if int(next_pos_x * width) != int(tran_comp.x * width) or int(next_pos_y * height) != int(tran_comp.y * height):
                 tail = self.world.create_entity()
                 tail.add_component(C_lifetime(0))
-                tail.add_component(C_sprite("@"))
+                tail.add_component(C_sprite("."))
                 tail.add_component(C_transform(tran_comp.x, tran_comp.y))
                 self.event_handler.dispatch_event(Move_event(entity))
                 self.len += 1
@@ -100,7 +100,7 @@ class S_player(core.System):
             for _ in range(apple_count):
                 tail = self.world.create_entity()
                 tail.add_component(C_lifetime(0))
-                tail.add_component(C_sprite("@"))
+                tail.add_component(C_sprite("."))
                 tail.add_component(C_transform(player.x, player.y))
 
     def on_move(self, event):
@@ -167,7 +167,7 @@ class Apple_handler():
                 entity.destroy_entity()
                 new_entity = self.world.create_entity()
                 new_entity.add_component(C_transform(rand.uniform(0, 1), rand.uniform(0, 1)))
-                new_entity.add_component(C_sprite("$"))
+                new_entity.add_component(C_sprite("🍎"))
                 new_entity.add_component(C_apple())
 
 core.Screen_wrapper().init()
@@ -182,12 +182,12 @@ apple_handler = Apple_handler(event_system, ecs)
 
 player_entity = ecs.create_entity()
 player_entity.add_component(C_transform(0.5, 0.5))
-player_entity.add_component(C_sprite(["#"]))
+player_entity.add_component(C_sprite(["."]))
 player_entity.add_component(C_player(0.5, [1, 0], 1))
 
 apple_entity = ecs.create_entity()
 apple_entity.add_component(C_transform(0.45, 0.5))
-apple_entity.add_component(C_sprite("$"))
+apple_entity.add_component(C_sprite("🍎"))
 apple_entity.add_component(C_apple())
 
 event_system.subscribe_event(core.Key_event(None), player_system.on_keypress)
