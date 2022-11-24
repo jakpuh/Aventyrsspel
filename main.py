@@ -5,8 +5,11 @@ sys.path.insert(1, 'core')
 import core
 import scene as sc
 import time
+import object_storage_builder as storage_builder
 
 core.Screen_wrapper().init()
+storage_builder.fill_object_storage()
+
 scene = sc.Scene()
 dt = 0 
 while True:

@@ -57,3 +57,15 @@ class S_player(core.System):
             [comp_trans] = entity.query_components([comp.C_transform])
             comp_trans.y += self.KEYMAP[event.key][0] * 0.1
             comp_trans.x += self.KEYMAP[event.key][1] * 0.1
+
+class S_ghost(core.System):
+    component_mask = [comp.C_ghost, comp.C_transform]
+
+    def __init__(self):
+        super().__init__()
+    
+    def run(self, dt):
+        pass      
+
+    def on_tick_event(event):
+        

@@ -5,6 +5,7 @@ import core
 import components as comp
 import systems as sys 
 import events as evt
+from object_storage import Object_storage
 
 class Scene():
     def __init__(self):
@@ -15,12 +16,13 @@ class Scene():
         render_system = self.world.add_system(sys.S_render())
         player_system = self.world.add_system(sys.S_player())
 
-        entity = self.world.create_entity()
-        entity.add_component(comp.C_player())
-        entity.add_component(comp.C_transform(0.5, 0.5))
-        entity.add_component(comp.C_hitbox(1, 1))
-        entity.add_component(comp.C_health(10))
-        entity.add_component(comp.C_sprite([" ___ ","|0 0|","|~~~|"]))
+        player_entity = self.world.create_entity()
+        player_entity_components = Object_storage().get("Player", "Default") 
+        for component in player_entity_components:
+            player_entity.add_component(component)
+        [comp_tran] = player_entity.query_components([comp.C_transform])
+        comp_tran.x = 0.5
+        comp_tran.y = 0.5
 
         #self.event_handler.subscribe_event(evt.Tick_event(), render_system.on_tick)
         self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)

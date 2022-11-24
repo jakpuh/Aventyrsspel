@@ -1,10 +1,25 @@
-
+'''
+Every entity has one or more of the following "Components"
+A component is a attribute which defines a specific quality of an entity
+The systems will then iterate through the components of an entity and create behavior
+'''
 import sys
 
 sys.path.insert(1, 'core')
 import core
 
 class C_player(core.Component):
+    pass
+
+class C_ghost(core.Component):
+    def __init__(self, speed):
+        self.speed = speed
+
+class C_thorn():
+    def __init__(self, damage):
+        self.damage = damage
+
+class C_impenetrable():
     pass
 
 class C_transform(core.Component):
