@@ -1,4 +1,4 @@
-
+# TODO: use a registered function when component_mask gets updated
 import sys
 
 sys.path.insert(1, 'core')
@@ -60,12 +60,19 @@ class S_player(core.System):
 
 class S_ghost(core.System):
     component_mask = [comp.C_ghost, comp.C_transform]
-
-    def __init__(self):
+    def __init__(self, world):
         super().__init__()
+        self.world = world
     
     def run(self, dt):
         pass      
 
-    def on_tick_event(event):
+    def on_tick_event(self, event):
+        # TODO: Maybe create a box with a hitbox
+        #       when player in box event -> event will get called
+        components = self.world.query_components([comp.C_player, comp.C_transform])
+        for entity in self.registered_entities:
+            for component in components:
+                
+
         
