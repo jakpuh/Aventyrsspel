@@ -15,10 +15,19 @@ def fill_object_storage():
         comp.C_hitbox(5, 3),\
         comp.C_health(100)\
     ])
+
     Object_storage().add("Monster", "Ghost", [\
         comp.C_ghost(2),\
         comp.C_transform(None, None),\
         comp.C_sprite([" _ ","0 0","~~~"]),\
         comp.C_hitbox(3, 3),\
         comp.C_health(20)\
+    ])
+
+    Object_storage().add("Projectile", "Bullet",[\
+        comp.C_transform(None, None),\
+        comp.C_sprite(["*"]),\
+        comp.C_hitbox(1, 1),\
+        comp.C_move(1, [None, None]),\
+        comp.C_thorn(1)
     ])

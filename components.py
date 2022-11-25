@@ -39,3 +39,8 @@ class C_hitbox(core.Component):
 class C_health(core.Component):
     def __init__(self, health):
         self.health = health  
+
+class C_move(core.Component):
+    def __init__(self, speed, dir):
+        self.speed = speed
+        self.dir = dir

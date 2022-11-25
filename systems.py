@@ -73,6 +73,4 @@ class S_ghost(core.System):
         components = self.world.query_components([comp.C_player, comp.C_transform])
         for entity in self.registered_entities:
             for component in components:
-                
-
-        
+                pass
