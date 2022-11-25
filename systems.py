@@ -21,7 +21,7 @@ class S_tick(core.System):
             self.tot_dt += dt
 
 class S_render(core.System):
-    component_mask = [comp.C_sprite, comp.C_transform]
+    component_mask = [[comp.C_sprite, comp.C_transform]]
 
     def __init__(self):
         super().__init__()
@@ -34,7 +34,7 @@ class S_render(core.System):
             core.Screen_wrapper().draw_texture(comp_sprite.texture, comp_trans.x, comp_trans.y)
 
 class S_player(core.System):
-    component_mask = [comp.C_player, comp.C_transform]
+    component_mask = [[comp.C_player, comp.C_transform]]
     KEYMAP = {
         ord('w'): [-1, 0],
         ord('d'): [0, 1],
@@ -59,7 +59,7 @@ class S_player(core.System):
             comp_trans.x += self.KEYMAP[event.key][1] * 0.1
 
 class S_ghost(core.System):
-    component_mask = [comp.C_ghost, comp.C_transform]
+    component_mask = [[comp.C_ghost, comp.C_transform],[comp.C_player, comp.C_transform]]
     def __init__(self, world):
         super().__init__()
         self.world = world
@@ -69,8 +69,12 @@ class S_ghost(core.System):
 
     def on_tick_event(self, event):
         # TODO: Maybe create a box with a hitbox
-        #       when player in box event -> event will get called
-        components = self.world.query_components([comp.C_player, comp.C_transform])
+        #       when player in box -> event will get called
+        player_components = self.world.query_components([comp.C_player, comp.C_transform])
         for entity in self.registered_entities:
-            for component in components:
-                pass
+            ghost_components = entity.query_components([comp.C_ghost, comp.C_transform])
+            for player_component in player_components:
+                # calculate the smallest manhattan distance
+                player_component.x + player_component.y
+
+        
