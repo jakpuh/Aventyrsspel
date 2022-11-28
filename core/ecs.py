@@ -1,12 +1,12 @@
 class Component():
     '''
-    Base class which every component will inheriet from.
+    Base class which every component will inherent from.
     '''
     pass
 
 class System():
     '''
-    Base class which every system will inheriet from.
+    Base class which every system will inherent from.
     '''
     def __init__(self):
         self.component_mask = []
