@@ -139,7 +139,9 @@ class World():
         ans = []
         for component_type in components_types:
             if not component_type in self.components:
-                raise Exception(f"Component with type \'{component_type}\' not valid")
+                # raise Exception(f"Component with type \'{component_type}\' not valid")
+                # TODO: fix
+                return []
             for current_entity,current_component in self.components[component_type]:
                 if (current_entity == entity):
                     ans.append(current_component) 

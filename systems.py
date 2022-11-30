@@ -71,8 +71,9 @@ class S_ghost(core.System):
             [comp_ghost, comp_tran] = entity.query_components([comp.C_ghost, comp.C_transform])
             if comp_ghost.target == None:
                 continue
-            comp_tran.x += comp_ghost.target[0] * comp_ghost.speed * dt
-            comp_tran.y += comp_ghost.target[1] * comp_ghost.speed * dt
+            comp_tran.x += (1 if comp_ghost.target[0] > comp_tran.x else -1) * comp_ghost.speed * dt
+            comp_tran.y += (1 if comp_ghost.target[1] > comp_tran.y else -1) * comp_ghost.speed * dt
+            # comp_tran.y += comp_ghost.target[1] * comp_ghost.speed * dt
 
     def on_tick_event(self, event):
         # TODO: Maybe create a box with a hitbox
@@ -82,9 +83,9 @@ class S_ghost(core.System):
 
             range_entity = self.world.create_entity()
             range_entity.add_component(comp.C_child_of(entity)) 
-            range_entity.add_component(comp.C_lifetime(2)) 
-            range_entity.add_component(comp.C_hitbox(40, 40)) 
-            range_entity.add_component(comp.C_transform(tran_comp.x, tran_comp.y)) 
+            range_entity.add_component(comp.C_lifetime(100)) 
+            range_entity.add_component(comp.C_hitbox(100, 100)) 
+            range_entity.add_component(comp.C_transform(tran_comp.x - 50, tran_comp.y - 50)) 
             range_entity.add_component(comp.C_range())
 
     def on_collision_event(self, event):
@@ -93,12 +94,15 @@ class S_ghost(core.System):
         entity1_player = event.entity1.query_components([comp.C_player, comp.C_transform])
         entity2_player = event.entity2.query_components([comp.C_player, comp.C_transform])
         if len(entity1_range) == 2 and len(entity2_player) == 2:
-            comp_ghost = self.world.query_components(entity1_range[1].parent, [comp.C_ghost])
+            # comp_ghost = self.world.query_components(entity1_range[1].parent, [comp.C_ghost])
+            comp_ghost = entity1_range[1].parent.query_components([comp.C_ghost])
             if len(comp_ghost) == 0:
                 return
             comp_ghost[0].target = [entity2_player[1].x, entity2_player[1].y]
         elif len(entity1_player) == 2 and len(entity2_range) == 2:
-            comp_ghost = self.world.query_components(entity2_range[1].parent, [comp.C_ghost])
+            # comp_ghost = self.world.query_components(entity2_range[1].parent, [comp.C_ghost])
+            comp_ghost = entity2_range[1].parent.query_components([comp.C_ghost])
+            # TODO: fix
             if len(comp_ghost) == 0:
                 return
             comp_ghost[0].target = [entity1_player[1].x, entity1_player[1].y]
@@ -130,7 +134,7 @@ class S_collision(core.System):
                 [hit_comp2, tran_comp2] = entity2.query_components([comp.C_hitbox, comp.C_transform])
                 if tran_comp1.x < hit_comp2.w + tran_comp2.x and \
                     tran_comp1.x + hit_comp1.w > tran_comp2.x and \
-                    tran_comp1.y > hit_comp2.h + tran_comp2.y and \
-                    tran_comp1.y + hit_comp1.h < tran_comp2.y: \
-                    self.event_handler.dispatch_event(entity1, entity2)
+                    tran_comp1.y < hit_comp2.h + tran_comp2.y and \
+                    tran_comp1.y + hit_comp1.h > tran_comp2.y: \
+                    self.event_handler.dispatch_event(evt.Collision_event(entity1, entity2))
 

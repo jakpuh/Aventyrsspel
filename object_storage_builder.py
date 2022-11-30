@@ -17,7 +17,7 @@ def fill_object_storage():
     ])
 
     Object_storage().add("Monster", "Ghost", [\
-        comp.C_ghost(2),\
+        comp.C_ghost(0.1),\
         comp.C_transform(None, None),\
         comp.C_sprite([" _ ","0 0","~~~"]),\
         comp.C_hitbox(3, 3),\

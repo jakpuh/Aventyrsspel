@@ -17,6 +17,7 @@ class Scene():
         player_system = self.world.add_system(sys.S_player())
         ghost_system = self.world.add_system(sys.S_ghost(self))
         lifetime_system = self.world.add_system(sys.S_lifetime())
+        collision_system = self.world.add_system(sys.S_collision(self.event_handler))
 
         player_entity = self.world.create_entity()
         player_entity_components = Object_storage().get("Player", "Default") 
@@ -31,8 +32,8 @@ class Scene():
         for component in ghost_entity_components:
             ghost_entity.add_component(component)
         [comp_tran] = ghost_entity.query_components([comp.C_transform])
-        comp_tran.x = 0.25
-        comp_tran.y = 0.25
+        comp_tran.x = 0.75
+        comp_tran.y = 0.75
 
         #self.event_handler.subscribe_event(evt.Tick_event(), render_system.on_tick)
         self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)
