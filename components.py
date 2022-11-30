@@ -14,6 +14,7 @@ class C_player(core.Component):
 class C_ghost(core.Component):
     def __init__(self, speed):
         self.speed = speed
+        self.target = None
 
 class C_thorn():
     def __init__(self, damage):
@@ -44,3 +45,14 @@ class C_move(core.Component):
     def __init__(self, speed, dir):
         self.speed = speed
         self.dir = dir
+
+class C_lifetime(core.Component):
+    def __init__(self, lifetime):
+        self.lifetime = lifetime
+
+class C_child_of(core.Component):
+    def __init__(self, parent):
+        self.parent = parent
+
+class C_range(core.Component):
+    pass

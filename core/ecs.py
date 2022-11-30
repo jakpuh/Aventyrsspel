@@ -9,7 +9,6 @@ class System():
     Base class which every system will inherent from.
     '''
     def __init__(self):
-        self.component_mask = []
         self.registered_entities = []
         self.world = None
 
@@ -111,6 +110,8 @@ class World():
         for system in self.systems:
             if self._entity_conforms_with_mask(entity, system.get_mask()):
                 system.register_entity(self.Entity_wrapper(entity, self))
+            else:
+                system.unregister_entity(entity) 
         return self.components[component_type][-1][1]
 
     def remove_component(self, entity, component_type):
@@ -127,7 +128,9 @@ class World():
                 self.components[component_type].remove((current_entity, current_component))
                 break
         for system in self.systems:
-            if not self._entity_conforms_with_mask(entity, system.get_mask()):
+            if self._entity_conforms_with_mask(entity, system.get_mask()):
+                system.register_entity(self.Entity_wrapper(entity, self))
+            else:
                 system.unregister_entity(entity) 
 
     def query_components(self, entity, components_types):
