@@ -33,9 +33,10 @@ class C_sprite(core.Component):
         self.texture = texture
 
 class C_hitbox(core.Component):
-    def __init__(self, w, h):
+    def __init__(self, w, h, relative_pos=False):
         self.w = w
         self.h = h
+        self.relative_pos = relative_pos
 
 class C_health(core.Component):
     def __init__(self, health):
@@ -56,3 +57,9 @@ class C_child_of(core.Component):
 
 class C_range(core.Component):
     pass
+
+# ================== DEBUG COMPONENTS (not accualy used in the game)======================
+class C_rectangle(core.Component):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
