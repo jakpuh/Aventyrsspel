@@ -58,6 +58,8 @@ class S_player(core.System):
             print(len(self.registered_entities))
             [comp_trans] = entity.query_components([comp.C_transform])
             # TODO: define speed in Player component
+            comp_trans.last_x = comp_trans.x
+            comp_trans.last_y = comp_trans.y
             comp_trans.y += self.KEYMAP[event.key][0] * 0.02
             comp_trans.x += self.KEYMAP[event.key][1] * 0.02
 
@@ -72,13 +74,17 @@ class S_ghost(core.System):
             [comp_ghost, comp_tran] = entity.query_components([comp.C_ghost, comp.C_transform])
             if comp_ghost.target == None:
                 continue
+            if abs(comp_tran.x - comp_ghost.target[0]) < comp_ghost.speed * dt and abs(comp_tran.y - comp_ghost.target[1]) < comp_ghost.speed * dt:
+                comp_ghost.state = comp_ghost.STILL
+            if comp_ghost.state == comp_ghost.STILL:
+                continue
             comp_tran.x += (1 if comp_ghost.target[0] > comp_tran.x else -1) * comp_ghost.speed * dt
             comp_tran.y += (1 if comp_ghost.target[1] > comp_tran.y else -1) * comp_ghost.speed * dt
             # comp_tran.y += comp_ghost.target[1] * comp_ghost.speed * dt
 
     def on_tick_event(self, event):
-        # TODO: Maybe create a box with a hitbox
-        #       when player in box -> event will get called
+        #TODO: Maybe create a box with a hitbox
+        #      when player in box -> event will get called
         for entity in self.registered_entities:
             [tran_comp] = entity.query_components([comp.C_transform])
 
@@ -86,13 +92,14 @@ class S_ghost(core.System):
             range_entity = self.world.create_entity()
             range_entity.add_component(comp.C_child_of(entity)) 
             range_entity.add_component(comp.C_lifetime(5)) 
-            range_entity.add_component(comp.C_hitbox(0.2, 0.2, True)) 
-            range_entity.add_component(comp.C_transform(tran_comp.x - 0.05, tran_comp.y - 0.05)) 
+            range_entity.add_component(comp.C_hitbox(0.3, 0.3, True)) 
+            range_entity.add_component(comp.C_transform(tran_comp.x - 0.15, tran_comp.y - 0.15)) 
             #range_entity.add_component(comp.C_transform(0, 0)) 
             range_entity.add_component(comp.C_range())
-            range_entity.add_component(comp.C_rectangle(0.2, 0.2))
-            #range_entity.add_component(comp.C_sprite("#"))
+            range_entity.add_component(comp.C_rectangle(0.3, 0.3))
+            # range_entity.add_component(comp.C_sprite("#"))
 
+    # TODO: maybe remove _event suffix. The on_ prefix should be enough to specify it to be an even handling function 
     def on_collision_event(self, event):
         entity1_range = event.entity1.query_components([comp.C_range, comp.C_child_of]) 
         entity2_range = event.entity2.query_components([comp.C_range, comp.C_child_of])
@@ -104,6 +111,7 @@ class S_ghost(core.System):
             if len(comp_ghost) == 0:
                 return
             comp_ghost[0].target = [entity2_player[1].x, entity2_player[1].y]
+            comp_ghost[0].state = comp_ghost[0].MOVING
         elif len(entity1_player) == 2 and len(entity2_range) == 2:
             # comp_ghost = self.world.query_components(entity2_range[1].parent, [comp.C_ghost])
             comp_ghost = entity2_range[1].parent.query_components([comp.C_ghost])
@@ -111,6 +119,7 @@ class S_ghost(core.System):
             if len(comp_ghost) == 0:
                 return
             comp_ghost[0].target = [entity1_player[1].x, entity1_player[1].y]
+            comp_ghost[0].state = comp_ghost[0].MOVING
 
 class S_lifetime(core.System):
     component_mask = [comp.C_lifetime]
@@ -131,7 +140,6 @@ class S_collision(core.System):
         super().__init__()
         self.event_handler = event_handler
 
-    # TODO: don't send out event twice
     def run(self, dt):
         for i,entity1 in enumerate(self.registered_entities):
             for j,entity2 in enumerate(self.registered_entities):
@@ -147,7 +155,29 @@ class S_collision(core.System):
                     tran_comp1.y + rel_hit_comp1[1] > tran_comp2.y: \
                     self.event_handler.dispatch_event(evt.Collision_event(entity1, entity2))
 
-# ================= DEBUG SYSTEMS (not actually used in the game) ==============00
+class S_impenetrable(core.System):
+    component_mask = [comp.C_impenetrable, comp.C_transform]
+    def __init__(self):
+        super().__init__()
+
+    def run(self, dt):
+        pass
+
+    def on_collision_event(self, event):
+        # TODO: fix this mess. define order of entities in event or use ds for order
+        comp_impenetrable1 = event.entity1.query_components([comp.C_impenetrable]) 
+        comp_impenetrable2 = event.entity2.query_components([comp.C_impenetrable])
+        if len(comp_impenetrable1) == 1:
+            # We don't need to check if entity has transform component because a collision event guarantees that this is the case 
+            [comp_trans2] = event.entity2.query_components([comp.C_transform])
+            comp_trans2.x = comp_trans2.last_x
+            comp_trans2.y = comp_trans2.last_y
+        elif len(comp_impenetrable2) == 1:
+            # We don't need to check if entity has transform component because a collision event guarantees that this is the case 
+            [comp_trans1] = event.entity1.query_components([comp.C_transform])
+            comp_trans1.x = comp_trans1.last_x
+            comp_trans1.y = comp_trans1.last_y
+
 class S_debug_render_rectangle(core.System):
     component_mask = [comp.C_rectangle, comp.C_transform]
 
@@ -157,6 +187,6 @@ class S_debug_render_rectangle(core.System):
     def run(self, dt):
         #core.Screen_wrapper().refresh()
         for entity in self.registered_entities:
-            # TODO: don't assume relative position
+            # TODO: don't assume that it uses relative position
             [comp_rectangle, comp_trans] = entity.query_components([comp.C_rectangle, comp.C_transform])
             core.Screen_wrapper().draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)

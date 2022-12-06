@@ -1,0 +1,5 @@
+============ IMPORTANT ===============
+Fix wall collision. Right know we test the next position of the player and check if it is valid.
+Instead send out a ray (or similar) which checks the distance to the next wall, then move the player to the wall. (This is unnecessary if we do grid based levels).
++ When resizing font you can clip into wall, this will be a bit harder to fix because we need to move the player while resizing.
+Might skipping fixing this bug and hoping the player won't notice / make them play with a specific font size (which we prob will do anyway)
