@@ -40,7 +40,7 @@ class World():
     class Entity_wrapper:
         '''
         Wrapper around an entity id.
-        Makes the relationship between entities and components more "logical" from a users perspecitive
+        Makes the relationship between entities and components more "logical" from a users perspective
         '''
         def __init__(self, entity_id, world):
             self.entity_id = entity_id
