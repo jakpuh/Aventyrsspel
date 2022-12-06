@@ -18,6 +18,8 @@ class Scene():
         ghost_system = self.world.add_system(sys.S_ghost(self))
         lifetime_system = self.world.add_system(sys.S_lifetime())
         collision_system = self.world.add_system(sys.S_collision(self.event_handler))
+        # ======== DEBUG =========
+        rectangle_system = self.world.add_system(sys.S_debug_render_rectangle())
 
         player_entity = self.world.create_entity()
         player_entity_components = Object_storage().get("Player", "Default") 
