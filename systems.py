@@ -57,8 +57,9 @@ class S_player(core.System):
         for entity in self.registered_entities:
             print(len(self.registered_entities))
             [comp_trans] = entity.query_components([comp.C_transform])
-            comp_trans.y += self.KEYMAP[event.key][0] * 0.1
-            comp_trans.x += self.KEYMAP[event.key][1] * 0.1
+            # TODO: define speed in Player component
+            comp_trans.y += self.KEYMAP[event.key][0] * 0.02
+            comp_trans.x += self.KEYMAP[event.key][1] * 0.02
 
 class S_ghost(core.System):
     component_mask = [comp.C_ghost, comp.C_transform]
@@ -81,12 +82,16 @@ class S_ghost(core.System):
         for entity in self.registered_entities:
             [tran_comp] = entity.query_components([comp.C_transform])
 
+            # TODO: make the entity follow the ghost instead of having a lifetime
             range_entity = self.world.create_entity()
             range_entity.add_component(comp.C_child_of(entity)) 
-            range_entity.add_component(comp.C_lifetime(100)) 
-            range_entity.add_component(comp.C_hitbox(100, 100)) 
-            range_entity.add_component(comp.C_transform(tran_comp.x - 50, tran_comp.y - 50)) 
+            range_entity.add_component(comp.C_lifetime(5)) 
+            range_entity.add_component(comp.C_hitbox(0.2, 0.2, True)) 
+            range_entity.add_component(comp.C_transform(tran_comp.x - 0.05, tran_comp.y - 0.05)) 
+            #range_entity.add_component(comp.C_transform(0, 0)) 
             range_entity.add_component(comp.C_range())
+            range_entity.add_component(comp.C_rectangle(0.2, 0.2))
+            #range_entity.add_component(comp.C_sprite("#"))
 
     def on_collision_event(self, event):
         entity1_range = event.entity1.query_components([comp.C_range, comp.C_child_of]) 
@@ -128,13 +133,30 @@ class S_collision(core.System):
 
     # TODO: don't send out event twice
     def run(self, dt):
-        for entity1 in self.registered_entities:
-            for entity2 in self.registered_entities:
+        for i,entity1 in enumerate(self.registered_entities):
+            for j,entity2 in enumerate(self.registered_entities):
+                if j <= i:
+                    continue
                 [hit_comp1, tran_comp1] = entity1.query_components([comp.C_hitbox, comp.C_transform])
                 [hit_comp2, tran_comp2] = entity2.query_components([comp.C_hitbox, comp.C_transform])
-                if tran_comp1.x < hit_comp2.w + tran_comp2.x and \
-                    tran_comp1.x + hit_comp1.w > tran_comp2.x and \
-                    tran_comp1.y < hit_comp2.h + tran_comp2.y and \
-                    tran_comp1.y + hit_comp1.h > tran_comp2.y: \
+                rel_hit_comp1 = core.Screen_wrapper().abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
+                rel_hit_comp2 = core.Screen_wrapper().abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
+                if tran_comp1.x < rel_hit_comp2[0] + tran_comp2.x and \
+                    tran_comp1.x + rel_hit_comp1[0] > tran_comp2.x and \
+                    tran_comp1.y < rel_hit_comp2[1] + tran_comp2.y and \
+                    tran_comp1.y + rel_hit_comp1[1] > tran_comp2.y: \
                     self.event_handler.dispatch_event(evt.Collision_event(entity1, entity2))
 
+# ================= DEBUG SYSTEMS (not actually used in the game) ==============00
+class S_debug_render_rectangle(core.System):
+    component_mask = [comp.C_rectangle, comp.C_transform]
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self, dt):
+        #core.Screen_wrapper().refresh()
+        for entity in self.registered_entities:
+            # TODO: don't assume relative position
+            [comp_rectangle, comp_trans] = entity.query_components([comp.C_rectangle, comp.C_transform])
+            core.Screen_wrapper().draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)
