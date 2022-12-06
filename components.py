@@ -12,9 +12,14 @@ class C_player(core.Component):
     pass
 
 class C_ghost(core.Component):
+    STILL = 0
+    MOVING = 1
+
+    # TODO: look more into how python represent enums
     def __init__(self, speed):
         self.speed = speed
         self.target = None
+        self.state = self.STILL
 
 class C_thorn():
     def __init__(self, damage):
@@ -25,6 +30,9 @@ class C_impenetrable():
 
 class C_transform(core.Component):
     def __init__(self, x, y):
+        # used to revert position when colliding with a wall
+        self.last_x = x 
+        self.last_y = y
         self.x = x
         self.y = y
 
@@ -58,7 +66,7 @@ class C_child_of(core.Component):
 class C_range(core.Component):
     pass
 
-# ================== DEBUG COMPONENTS (not accualy used in the game)======================
+# ================== DEBUG COMPONENTS (not actually used in the game)======================
 class C_rectangle(core.Component):
     def __init__(self, width, height):
         self.width = width
