@@ -32,13 +32,13 @@ class Scene():
         comp_tran.last_y = 0.5
         comp_tran.last_x = 0.5
 
-        # ghost_entity = self.world.create_entity()
-        # ghost_entity_components = Object_storage().get("Monster", "Ghost")
-        # for component in ghost_entity_components:
-        #     ghost_entity.add_component(component)
-        # [comp_tran] = ghost_entity.query_components([comp.C_transform])
-        # comp_tran.x = 0.75
-        # comp_tran.y = 0.75
+        ghost_entity = self.world.create_entity()
+        ghost_entity_components = Object_storage().get("Monster", "Ghost")
+        for component in ghost_entity_components:
+            ghost_entity.add_component(component)
+        [comp_tran] = ghost_entity.query_components([comp.C_transform])
+        comp_tran.x = 0.75
+        comp_tran.y = 0.75
         # TODO: (maybe) let the user have a range rectangle, instead of every other entity needing to have one (assuming everyone the same range)
 
         wall_entity = self.world.create_entity()
