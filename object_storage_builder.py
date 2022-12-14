@@ -24,6 +24,8 @@ def fill_object_storage():
         comp.C_health(20)\
     ])
 
+    Object_storage().add("Monster", "")
+
     Object_storage().add("Projectile", "Bullet",[\
         comp.C_transform(None, None),\
         comp.C_sprite(["*"]),\
