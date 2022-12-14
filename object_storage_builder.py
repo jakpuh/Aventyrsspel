@@ -24,7 +24,7 @@ def fill_object_storage():
         comp.C_health(20)\
     ])
 
-    Object_storage().add("Monster", "")
+    #Object_storage().add("Monster", "")
 
     Object_storage().add("Projectile", "Bullet",[\
         comp.C_transform(None, None),\
@@ -44,8 +44,7 @@ def fill_object_storage():
     Object_storage().add("Wall", "Dynamic",[
         comp.C_transform(None, None),
         comp.C_impenetrable(),
-        comp.C_hitbox(0.5, 0.05, True),
-        comp.C_impenetrable(),
-        comp.C_rectangle(0.5, 0.05)
+        comp.C_hitbox(None, None, True),
+        comp.C_rectangle(None, None)
         #comp.C_sprite(["####","####","####","####"])
     ])

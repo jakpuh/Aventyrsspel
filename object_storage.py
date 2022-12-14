@@ -2,6 +2,7 @@ import sys
 
 sys.path.insert(1, 'core')
 import core
+import copy
 
 class Object_storage(metaclass=core.Singleton):
     def __init__(self):
@@ -12,11 +13,11 @@ class Object_storage(metaclass=core.Singleton):
             self.objects[obj_class] = {}
         if obj_name in self.objects[obj_class]:
             raise Exception("Object already in system")
-        self.objects[obj_class][obj_name] = components
+        self.objects[obj_class][obj_name] = copy.deepcopy(components)
     
     def get(self, obj_class: str, obj_name: str) -> list[core.Component]:
         if not obj_class in self.objects:
             raise Exception("Object class not found")
         if not obj_name in self.objects[obj_class]:
             raise Exception("Object not found in class")
-        return self.objects[obj_class][obj_name]
+        return copy.deepcopy(self.objects[obj_class][obj_name])

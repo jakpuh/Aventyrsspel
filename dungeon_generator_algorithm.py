@@ -35,8 +35,13 @@ class Disjoin_set_2d():
             return
         self.data[p1[0]][p1[1]] = p2
 
+class Layout_generator():
+    def generate():
+        pass
+
 # Dont use. Generates to many paths
-class Dungeon_generator_additive():
+# Also doesn't work
+class Layout_generator_additive(Layout_generator):
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -71,7 +76,7 @@ class Dungeon_generator_additive():
                 adj_matrix_vertical[rand_row][rand_col] = True
 
             
-class Dungeon_generator_spanning():
+class Layout_generator_spanning(Layout_generator):
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -95,13 +100,13 @@ class Dungeon_generator_spanning():
         edges = []
         for row in range(0, self.height - 1):
             for col in range(0, self.width - 1):
-                edges.append(((row, col), (row + 1, col)))
-                edges.append(((row, col), (row, col + 1)))
+                edges.append(((row, col), (row + 1, col), 'D'))
+                edges.append(((row, col), (row, col + 1), 'R'))
         rand.shuffle(edges)
 
         selected_edges = []
 
-        # using kruskal's algorithm to generate a spanning tree
+        # using variant of kruskal's algorithm to generate a spanning tree
         set = Disjoin_set_2d(self.width, self.height)
         for edge in edges:
             if set.find(edge[0]) == set.find(edge[1]):
@@ -111,9 +116,9 @@ class Dungeon_generator_spanning():
 
         adj = []
         for _ in range(self.width * self.height - 1):
-            adj.append([])
+            adj.append([])  
         for edge in selected_edges:
-            adj[edge[0][0] * self.width + edge[0][1]].append(edge[1][0] * self.width + edge[1][1])
-            adj[edge[1][0] * self.width + edge[1][1]].append(edge[0][0] * self.width + edge[0][1])
+            adj[edge[0][0] * self.width + edge[0][1]].append((edge[1][0] * self.width + edge[1][1], edge[2]))
+            adj[edge[1][0] * self.width + edge[1][1]].append((edge[0][0] * self.width + edge[0][1], 'L' if edge[2] == 'R' else 'U'))
 
         return adj

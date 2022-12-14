@@ -78,6 +78,8 @@ class S_ghost(core.System):
                 comp_ghost.state = comp_ghost.STILL
             if comp_ghost.state == comp_ghost.STILL:
                 continue
+            comp_tran.last_x = comp_tran.x
+            comp_tran.last_y = comp_tran.y
             comp_tran.x += (1 if comp_ghost.target[0] > comp_tran.x else -1) * comp_ghost.speed * dt
             comp_tran.y += (1 if comp_ghost.target[1] > comp_tran.y else -1) * comp_ghost.speed * dt
             # comp_tran.y += comp_ghost.target[1] * comp_ghost.speed * dt
@@ -91,7 +93,7 @@ class S_ghost(core.System):
             # TODO: make the entity follow the ghost instead of having a lifetime
             range_entity = self.world.create_entity()
             range_entity.add_component(comp.C_child_of(entity)) 
-            range_entity.add_component(comp.C_lifetime(5)) 
+            range_entity.add_component(comp.C_lifetime(3)) 
             range_entity.add_component(comp.C_hitbox(0.3, 0.3, True)) 
             range_entity.add_component(comp.C_transform(tran_comp.x - 0.15, tran_comp.y - 0.15)) 
             #range_entity.add_component(comp.C_transform(0, 0)) 

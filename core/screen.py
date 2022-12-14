@@ -26,6 +26,7 @@ class Screen_wrapper(metaclass=singleton.Singleton):
 
     def exit(self):
         curses.nocbreak()
+        curses.curs_set(0)
         self.stdscr.keypad(False)
         curses.echo()
         curses.endwin()
@@ -68,5 +69,10 @@ class Screen_wrapper(metaclass=singleton.Singleton):
         [max_height, max_width] = self.get_dimension()
         [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y) 
         [abs_width, abs_height] = self.rel_to_abs(rel_width, rel_height) 
+        top = abs_y + abs_height
         self.draw_row("#"*abs_width, abs_x, abs_y)
-        self.draw_row("#"*abs_width, abs_x, abs_y + abs_height)
+        while abs_y < top:
+            self.draw_row("#", abs_x, abs_y)
+            self.draw_row("#", abs_x + abs_width, abs_y)
+            abs_y += 1
+        self.draw_row("#"*abs_width, abs_x, top)
