@@ -13,6 +13,8 @@ storage_builder.fill_object_storage()
 scene = sc.Scene()
 dt_lst = []
 
+FPS = 30
+
 try:
     dt = 0 
     while True:
@@ -22,14 +24,14 @@ try:
 
         stop = time.time()
         dt = stop - start
-        time.sleep(max(1 / 30 - dt, 0))
-        dt = max(dt, 1 / 30)
-        dt_lst.append(dt)
+        time.sleep(max(1 / FPS - dt, 0))
+        dt = max(dt, 1 / FPS)
+        # dt_lst.append(dt)
 except:
-    f = open("dt_logging.txt", "a")
-    for dt in dt_lst:
-        f.write(str(dt) + " ")
-    f.close()
+    # f = open("dt_logging.txt", "a")
+    # for dt in dt_lst:
+    #   f.write(str(dt) + " ")
+    #f.close()
     core.Screen_wrapper().exit()
     traceback.print_exc()
     print("hello")

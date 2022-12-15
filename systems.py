@@ -29,7 +29,8 @@ class S_render(core.System):
 
     def run(self, dt):
         core.Screen_wrapper().refresh()
-        print(dt)
+        if dt != 0:
+                print(1 / dt)
         for entity in self.registered_entities:
             [comp_sprite, comp_trans] = entity.query_components([comp.C_sprite, comp.C_transform])
             core.Screen_wrapper().draw_texture(comp_sprite.texture, comp_trans.x, comp_trans.y)
