@@ -58,12 +58,11 @@ class World():
         def destroy_entity(self):
             self.world.destroy_entity(self.entity_id)
 
-         
-    systems = [] 
-    entities = []  
-    components = {} 
-
-    next_entity_id = 0
+    def __init__(self):
+        self.systems = [] 
+        self.entities = []  
+        self.components = {} 
+        self.next_entity_id = 0
 
     def _entity_conforms_with_mask(self, entity, mask):
         count = 0

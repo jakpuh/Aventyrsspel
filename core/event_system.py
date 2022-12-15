@@ -3,7 +3,8 @@ class Event():
 
 # TODO: switch name so that it doesn't get confused with a system in ecs
 class Event_system():
-    subscribers = []
+    def __init__(self):
+        self.subscribers = []
 
     def dispatch_event(self, event):
         for current_event,current_callback in self.subscribers:

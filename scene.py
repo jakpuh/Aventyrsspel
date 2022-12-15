@@ -8,7 +8,7 @@ import events as evt
 from object_storage import Object_storage
 
 class Scene():
-    def __init__(self):
+    def __init__(self, wall_dirs):
         self.world = core.World()
         self.event_handler = core.Event_system()
 
@@ -22,20 +22,14 @@ class Scene():
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle())
 
-        player_entity = self.world.create_entity()
-        player_entity_components = Object_storage().get("Player", "Default") 
-        for component in player_entity_components:
-            player_entity.add_component(component)
+        player_entity = self.clone_entity("Player", "Default") 
         [comp_tran] = player_entity.query_components([comp.C_transform])
         comp_tran.x = 0.5
         comp_tran.y = 0.5
         comp_tran.last_y = 0.5
         comp_tran.last_x = 0.5
 
-        ghost_entity = self.world.create_entity()
-        ghost_entity_components = Object_storage().get("Monster", "Ghost")
-        for component in ghost_entity_components:
-            ghost_entity.add_component(component)
+        ghost_entity = self.clone_entity("Monster", "Ghost")
         [comp_tran] = ghost_entity.query_components([comp.C_transform])
         comp_tran.x = 0.75
         comp_tran.y = 0.75
@@ -51,12 +45,14 @@ class Scene():
         comp_tran.last_y = 0.2
         comp_tran.last_x = 0.2
 
-        self.build_border('U', True)
-        self.build_border('D', True)
-        self.build_border('R', True)
-        self.build_border('L', True)
+        all_dirs = ['U', 'D', 'L', 'R']
+        no_wall_dirs = list(set(wall_dirs)^set(all_dirs))
 
-        #self.event_handler.subscribe_event(evt.Tick_event(), render_system.on_tick)
+        for dir in wall_dirs:
+            self.build_border(dir, True)
+        for dir in no_wall_dirs:
+            self.build_border(dir, False)
+
         self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)
         self.event_handler.subscribe_event(evt.Tick_event(), ghost_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), ghost_system.on_collision_event)
@@ -83,12 +79,13 @@ class Scene():
         return wall
 
     def build_wall_with_door(self, x, y, width, height):
+        DOOR_WIDTH = 0.05
         if width > height:
-            self.build_wall_without_door(x, y, width / 2 - 0.025, height)
-            self.build_wall_without_door(x + width / 2 + 0.025, y, width / 2 - 0.025, height)
+            self.build_wall_without_door(x, y, width / 2 - DOOR_WIDTH, height)
+            self.build_wall_without_door(x + width / 2 + DOOR_WIDTH, y, width / 2 - DOOR_WIDTH, height)
         else:
-            self.build_wall_without_door(x, y, width, height / 2 - 0.025)
-            self.build_wall_without_door(x, y + height / 2 + 0.025, width, height / 2 - 0.025)
+            self.build_wall_without_door(x, y, width, height / 2 - DOOR_WIDTH)
+            self.build_wall_without_door(x, y + height / 2 + DOOR_WIDTH, width, height / 2 - DOOR_WIDTH)
 
     def build_wall(self, x, y, width, height, has_door):
         if has_door:
