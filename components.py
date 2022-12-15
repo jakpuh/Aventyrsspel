@@ -66,6 +66,10 @@ class C_child_of(core.Component):
 class C_range(core.Component):
     pass
 
+class C_exit(core.Component):
+    def __init__(self, name):
+        self.name = name
+
 # ================== DEBUG COMPONENTS (not actually used in the game)======================
 class C_rectangle(core.Component):
     def __init__(self, width, height):

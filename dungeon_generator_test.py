@@ -19,13 +19,17 @@ scene = sc.Scene(['U'])
 generator = Dungeon_generator(Layout_generator_spanning())
 rooms = generator.generate()
 
+current_room = 0
 try:
     dt = 0 
     while True:
         start = time.time()
 
-        #scene.run(dt)
-        rooms[3].scene.run(dt)
+        # scene.run(dt)
+        ret_lst = rooms[current_room].scene.run(dt)
+        for ret in ret_lst:
+            if ret in "UDRL":
+                current_room = rooms[current_room].neighbours[ret]
 
         stop = time.time()
         dt = stop - start

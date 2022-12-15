@@ -175,11 +175,23 @@ class S_impenetrable(core.System):
             [comp_trans2] = event.entity2.query_components([comp.C_transform])
             comp_trans2.x = comp_trans2.last_x
             comp_trans2.y = comp_trans2.last_y
-        elif len(comp_impenetrable2) == 1:
+        if len(comp_impenetrable2) == 1:
             # We don't need to check if entity has transform component because a collision event guarantees that this is the case 
             [comp_trans1] = event.entity1.query_components([comp.C_transform])
             comp_trans1.x = comp_trans1.last_x
             comp_trans1.y = comp_trans1.last_y
+
+class H_exit(core.System):
+    def __init__(self, exit_lst):
+        self.exit_lst = exit_lst
+
+    def on_collision_event(self, event: evt.Collision_event):
+        comp_exit1 = event.entity1.query_components([comp.C_exit])
+        comp_exit2 = event.entity2.query_components([comp.C_exit])
+        if len(comp_exit1) == 1:
+            self.exit_lst.append(comp_exit1[0].name)
+        if len(comp_exit2) == 1:
+            self.exit_lst.append(comp_exit2[0].name)
 
 class S_debug_render_rectangle(core.System):
     component_mask = [comp.C_rectangle, comp.C_transform]
