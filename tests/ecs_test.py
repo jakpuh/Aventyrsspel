@@ -1,7 +1,7 @@
 import sys
 
 sys.path.insert(1, 'core')
-import ecs
+import core
 
 
 class C_transform(ecs.Component):

@@ -26,12 +26,12 @@ class Scene():
 
         exit_handler = sys.H_exit(self.exit_lst)
 
-        player_entity = self.clone_entity("Player", "Default") 
-        [comp_tran] = player_entity.query_components([comp.C_transform])
-        comp_tran.x = 0.5
-        comp_tran.y = 0.5
-        comp_tran.last_y = 0.5
-        comp_tran.last_x = 0.5
+        # player_entity = self.clone_entity("Player", "Default") 
+        # [comp_tran] = player_entity.query_components([comp.C_transform])
+        # comp_tran.x = 0.5
+        # comp_tran.y = 0.5
+        # comp_tran.last_y = 0.5
+        # comp_tran.last_x = 0.5
 
         ghost_entity = self.clone_entity("Monster", "Ghost")
         [comp_tran] = ghost_entity.query_components([comp.C_transform])
