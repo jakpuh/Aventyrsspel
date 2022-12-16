@@ -93,6 +93,13 @@ class World():
             self.remove_component(entity, component_type)
         self.entities.remove(entity)
 
+    def get_entities(self, mask):
+        lst = []
+        for entity in self.entities:
+            if self._entity_conforms_with_mask(entity, mask):
+                lst.append(entity)
+        return lst
+
     # OBS: if entity already has a component with the same type, then the old component will get replaced
     def add_component(self, entity, component):
         if not self._entity_exists(entity):
