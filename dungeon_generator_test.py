@@ -8,6 +8,7 @@ import scene as sc
 import time
 import traceback
 import object_storage_builder as storage_builder
+import components as comp
 
 FPS = 30
 
@@ -29,7 +30,15 @@ try:
         ret_lst = rooms[current_room].scene.run(dt)
         for ret in ret_lst:
             if ret in "UDRL":
-                current_room = rooms[current_room].neighbours[ret]
+                next_room = rooms[current_room].neighbours[ret]
+                player_entities = rooms[current_room].scene.world.get_entities([comp.C_player])
+                for player in player_entities:
+                    player_components = player.query_components_all()
+                    new_player = rooms[next_room].scene.world.create_entity()
+                    for player_component in player_components:
+                        new_player.add_component(player_component)
+                    player.destroy_entity()
+                current_room = next_room
 
         stop = time.time()
         dt = stop - start
