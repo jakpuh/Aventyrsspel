@@ -181,7 +181,20 @@ class S_impenetrable(core.System):
             comp_trans1.x = comp_trans1.last_x
             comp_trans1.y = comp_trans1.last_y
 
-class H_exit(core.System):
+class H_thorn():
+    def on_collision_event(self, event: evt.Collision_event):
+        comp_thorn1 = event.entity1.query_components([comp.C_thorn])
+        comp_health1 = event.entity1.query_components([comp.C_health])
+        comp_thorn2 = event.entity2.query_components([comp.C_thorn])
+        comp_health2 = event.entity2.query_components([comp.C_health])
+        if len(comp_thorn1) != 0:
+            if len(comp_health2) != 0:
+                comp_health2[0].health -= comp_thorn1[0].damage
+        if len(comp_thorn2) != 0:
+            if len(comp_health1) != 0:
+                comp_health1[0].health -= comp_thorn2[0].damage
+
+class H_exit():
     def __init__(self, exit_lst):
         self.exit_lst = exit_lst
 
@@ -192,6 +205,7 @@ class H_exit(core.System):
             self.exit_lst.append(comp_exit1[0].name)
         if len(comp_exit2) == 1:
             self.exit_lst.append(comp_exit2[0].name)
+
 
 class S_debug_render_rectangle(core.System):
     component_mask = [comp.C_rectangle, comp.C_transform]

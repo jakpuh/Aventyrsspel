@@ -25,6 +25,7 @@ class Scene():
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle())
 
         exit_handler = sys.H_exit(self.exit_lst)
+        thorn_handler = sys.H_thorn()
 
         player_entity = self.clone_entity("Player", "Default") 
         [comp_tran] = player_entity.query_components([comp.C_transform])
@@ -61,7 +62,7 @@ class Scene():
         self.event_handler.subscribe_event(evt.Collision_event(None, None), ghost_system.on_collision_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), impenetrable_system.on_collision_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), exit_handler.on_collision_event)
-
+        self.event_handler.subscribe_event(evt.Collision_event(None, None), thorn_handler.on_collision_event)
     
     def clone_entity(self, object_class: str, object_name: str):
         entity = self.world.create_entity()
