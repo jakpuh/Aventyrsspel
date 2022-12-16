@@ -54,6 +54,9 @@ class World():
         
         def query_components(self, components_types):
             return self.world.query_components(self.entity_id, components_types) 
+        
+        def query_components_all(self):
+            return self.world.query_components_all(self.entity_id)
 
         def destroy_entity(self):
             self.world.destroy_entity(self.entity_id)
@@ -97,7 +100,7 @@ class World():
         lst = []
         for entity in self.entities:
             if self._entity_conforms_with_mask(entity, mask):
-                lst.append(entity)
+                lst.append(self.Entity_wrapper(entity, self))
         return lst
 
     # OBS: if entity already has a component with the same type, then the old component will get replaced
@@ -141,7 +144,7 @@ class World():
 
     def query_components(self, entity, components_types):
         if not self._entity_exists(entity):
-            raise Exception("Entity does not exist") 
+            raise Exception(f"Entity '{entity}' does not exit")
         ans = []
         for component_type in components_types:
             if not component_type in self.components:
@@ -153,6 +156,17 @@ class World():
                     ans.append(current_component) 
                     break
         return ans
+    
+    def query_components_all(self, entity):
+        lst = []
+        if not self._entity_exists(entity):
+            raise Exception(f"Entity '{entity}' does not exit")
+        for component_type in self.components:
+            for current_entity,current_component in self.components[component_type]:
+                if (current_entity == entity):
+                    lst.append(current_component)      
+        return lst
+
 
     def add_system(self, system):
         if system in self.systems:
