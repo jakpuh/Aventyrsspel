@@ -9,20 +9,22 @@ from object_storage import Object_storage
 from typing import Optional
 
 class Scene():
-    def __init__(self, wall_dirs):
+    def __init__(self, wall_dirs, screen, hotbar):
         self.world = core.World()
         self.event_handler = core.Event_system()
         self.exit_lst = []
+        self.screen = screen
+        self.hotbar = hotbar
 
-        collision_system = self.world.add_system(sys.S_collision(self.event_handler))
+        collision_system = self.world.add_system(sys.S_collision(self.event_handler, screen))
         tick_system   = self.world.add_system(sys.S_tick(self.event_handler))
-        render_system = self.world.add_system(sys.S_render())
+        render_system = self.world.add_system(sys.S_render(screen))
         player_system = self.world.add_system(sys.S_player())
         ghost_system = self.world.add_system(sys.S_ghost(self))
         lifetime_system = self.world.add_system(sys.S_lifetime())
         impenetrable_system = self.world.add_system(sys.S_impenetrable())
         # ======== DEBUG =========
-        rectangle_system = self.world.add_system(sys.S_debug_render_rectangle())
+        rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
 
         exit_handler = sys.H_exit(self.exit_lst)
         thorn_handler = sys.H_thorn()
@@ -123,6 +125,7 @@ class Scene():
   
     def run(self, dt) -> list[str]:
         del self.exit_lst[:]
-        core.Screen_wrapper().poll_events(self.event_handler)
+        # core.Screen_wrapper().poll_events(self.event_handler)
+        core.Screen().poll_events(self.event_handler)
         self.world.run(dt)
         return self.exit_lst

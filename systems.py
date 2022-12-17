@@ -24,16 +24,17 @@ class S_tick(core.System):
 class S_render(core.System):
     component_mask = [comp.C_sprite, comp.C_transform]
 
-    def __init__(self):
+    def __init__(self, screen):
         super().__init__()
+        self.screen = screen
 
     def run(self, dt):
-        core.Screen_wrapper().refresh()
+        self.screen.refresh()
         if dt != 0:
                 print(1 / dt)
         for entity in self.registered_entities:
             [comp_sprite, comp_trans] = entity.query_components([comp.C_sprite, comp.C_transform])
-            core.Screen_wrapper().draw_texture(comp_sprite.texture, comp_trans.x, comp_trans.y)
+            self.screen.draw_texture(comp_sprite.texture, comp_trans.x, comp_trans.y)
 
 class S_player(core.System):
     component_mask = [comp.C_player, comp.C_transform]
@@ -56,7 +57,7 @@ class S_player(core.System):
         if not event.key in self.KEYMAP:
             return
         for entity in self.registered_entities:
-            print(len(self.registered_entities))
+            #print(len(self.registered_entities))
             [comp_trans] = entity.query_components([comp.C_transform])
             # TODO: define speed in Player component
             comp_trans.last_x = comp_trans.x
@@ -139,9 +140,10 @@ class S_lifetime(core.System):
 
 class S_collision(core.System):
     component_mask = [comp.C_hitbox, comp.C_transform]
-    def __init__(self, event_handler):
+    def __init__(self, event_handler, screen):
         super().__init__()
         self.event_handler = event_handler
+        self.screen = screen
 
     def run(self, dt):
         for i,entity1 in enumerate(self.registered_entities):
@@ -150,8 +152,10 @@ class S_collision(core.System):
                     continue
                 [hit_comp1, tran_comp1] = entity1.query_components([comp.C_hitbox, comp.C_transform])
                 [hit_comp2, tran_comp2] = entity2.query_components([comp.C_hitbox, comp.C_transform])
-                rel_hit_comp1 = core.Screen_wrapper().abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
-                rel_hit_comp2 = core.Screen_wrapper().abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
+                # rel_hit_comp1 = self.screen.abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
+                # rel_hit_comp2 = self.screen.abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
+                rel_hit_comp1 = self.screen.abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
+                rel_hit_comp2 = self.screen.abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
                 if tran_comp1.x < rel_hit_comp2[0] + tran_comp2.x and \
                     tran_comp1.x + rel_hit_comp1[0] > tran_comp2.x and \
                     tran_comp1.y < rel_hit_comp2[1] + tran_comp2.y and \
@@ -210,12 +214,13 @@ class H_exit():
 class S_debug_render_rectangle(core.System):
     component_mask = [comp.C_rectangle, comp.C_transform]
 
-    def __init__(self):
+    def __init__(self, screen):
         super().__init__()
+        self.screen = screen
 
     def run(self, dt):
-        #core.Screen_wrapper().refresh()
+        #self.screen.refresh()
         for entity in self.registered_entities:
             # TODO: don't assume that it uses relative position
             [comp_rectangle, comp_trans] = entity.query_components([comp.C_rectangle, comp.C_transform])
-            core.Screen_wrapper().draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)
+            self.screen.draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)

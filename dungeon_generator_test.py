@@ -8,21 +8,40 @@ import scene as sc
 import time
 import traceback
 import object_storage_builder as storage_builder
+from object_storage import *
 import components as comp
+import curses
+import time
 
 FPS = 30
 
-core.Screen_wrapper().init()
+main_window = core.Screen().create_window(0, 0, 0.9, 1)
+hotbar_window = core.Screen().create_window(0.9, 0.0, 0.1, 0.1)
 storage_builder.fill_object_storage()
 
-scene = sc.Scene(['U'])
-
 generator = Dungeon_generator(Layout_generator_spanning())
-rooms = generator.generate()
+rooms = generator.generate(main_window, hotbar_window)
 
 current_room = 0
+player1 = rooms[current_room].scene.world.create_entity()
+player1_components = Object_storage().get("Player", "Default")
+for component in player1_components:
+    player1.add_component(component)
+[tran_comp] = player1.query_components([comp.C_transform])
+tran_comp.x = 0.5
+tran_comp.y = 0.5
+tran_comp.last_x = 0.5
+tran_comp.last_y = 0.5
+
+POS = {
+    'U': (0.8, None),
+    'D': (0.1, None),
+    'R': (None, 0.1),
+    'L': (None, 0.9)
+}
+
+dt = 0 
 try:
-    dt = 0 
     while True:
         start = time.time()
 
@@ -37,6 +56,11 @@ try:
                     new_player = rooms[next_room].scene.world.create_entity()
                     for player_component in player_components:
                         new_player.add_component(player_component)
+                    [tran_comp] = new_player.query_components([comp.C_transform])
+                    tran_comp.y = POS[ret][0] if POS[ret][0] != None else tran_comp.y
+                    tran_comp.x = POS[ret][1] if POS[ret][1] != None else tran_comp.x
+                    tran_comp.last_y = POS[ret][0] if POS[ret][0] != None else tran_comp.y
+                    tran_comp.last_x = POS[ret][1] if POS[ret][1] != None else tran_comp.x
                     player.destroy_entity()
                 current_room = next_room
 
@@ -45,5 +69,5 @@ try:
         time.sleep(max(1 / FPS - dt, 0))
         dt = max(dt, 1 / FPS)
 except:
-    core.Screen_wrapper().exit()
+    core.Screen().exit()
     traceback.print_exc()

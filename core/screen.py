@@ -1,67 +1,62 @@
 import curses
 import event_system as es
 import singleton
+from numbers import Number
+from typing import Tuple
 
 class Key_event(es.Event):
     def __init__(self, key):
         self.key = key
-       
-class Screen_wrapper(metaclass=singleton.Singleton):
-    '''
-    Singleton class which represents the console which the user is playing on.
-    '''
-    stdscr = None
 
-    def init(self):
-        self.stdscr = curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        curses.curs_set(0)
-        self.stdscr.keypad(True)
-        self.stdscr.nodelay(True)
-
+class Window(): 
+    def __init__(self, window):
+        self.window = window
+        self.children = []
+        # self.window.bkgd('.')
+    
     def refresh(self):
-        self.stdscr.refresh()
-        self.stdscr.clear()
-
-    def exit(self):
-        curses.nocbreak()
-        curses.curs_set(0)
-        self.stdscr.keypad(False)
-        curses.echo()
-        curses.endwin()
-
-    def draw_row(self, row, abs_x, abs_y):
+        self.window.refresh()
+        self.window.clear()
+    
+    def draw_row(self, row: int, abs_x: int, abs_y: int):
         [max_height, max_width] = self.get_dimension()
         if (abs_x >= max_width or abs_y >= max_height):
             return
         dist_to_right = max_width - abs_x 
-        self.stdscr.addstr(max(abs_y, 0), max(abs_x, 0), row[0:min(len(row), dist_to_right)])
+        self.window.addstr(max(abs_y, 0), max(abs_x, 0), row[0:min(len(row), dist_to_right)])
 
     def draw_texture(self, texture, rel_x, rel_y):
         [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y)
         for texture_row in texture:
             self.draw_row(texture_row, abs_x, abs_y)
             abs_y += 1
-
-    def get_dimension(self):
-        return self.stdscr.getmaxyx()
-
-    def rel_to_abs(self, x, y):
-        [height, width] = self.get_dimension()
-        return [int(x * (width - 2)), int(y * (height - 2))]
-
-    def abs_to_rel(self, x, y):
-        [height, width] = self.get_dimension()
-        return [(x / (width - 2)), (y / (height - 2))]
-
-    def poll_events(self, event_handler):
-        keypress = self.stdscr.getch()
-        if keypress != -1:
-            event_handler.dispatch_event(Key_event(keypress))
     
-# ================== DEBUG ===================0
-    def draw_rectangle(self, rel_x, rel_y, rel_width, rel_height):
+    def get_dimension(self: list[int, int]):
+        return self.window.getmaxyx()
+
+    def rel_to_abs(self, x: Number, y: Number) -> Tuple[int, int]:
+        [height, width] = self.get_dimension()
+        return (int(x * (width - 2)), int(y * (height - 2)))
+
+    def abs_to_rel(self, x: int, y: int) -> Tuple[Number, Number]:
+        [height, width] = self.get_dimension()
+        return ((x / (width - 2)), (y / (height - 2)))
+
+    def create_window(self, rel_x, rel_y, rel_width, rel_height):
+        [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y)
+        [abs_width, abs_height] = self.rel_to_abs(rel_width, rel_height)
+        child_window = Window(self.window.subwin(abs_height, abs_width, abs_y, abs_x))
+        self.children.append((child_window, (rel_x, rel_y, rel_width, rel_height)))
+        return child_window
+    
+    def _resize(self, abs_x, abs_y, abs_width, abs_height):
+        self.window.resize(1, 1) # otherwise mvwin will move the window out of scope which will make the program crash
+        self.window.mvwin(abs_y, abs_x)
+        self.window.resize(abs_height, abs_width)
+        for child in self.children:
+            child[0]._resize(int(child[1][0] * abs_width), int(child[1][1] * abs_height), int(child[1][2] * abs_width), int(child[1][3] * abs_height))
+
+    def draw_rectangle(self, rel_x: Number, rel_y: Number, rel_width: Number, rel_height: Number):
         [max_height, max_width] = self.get_dimension()
         [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y) 
         [abs_width, abs_height] = self.rel_to_abs(rel_width, rel_height) 
@@ -72,3 +67,35 @@ class Screen_wrapper(metaclass=singleton.Singleton):
             self.draw_row("#", abs_x + abs_width, abs_y)
             abs_y += 1
         self.draw_row("#"*abs_width, abs_x, top)
+
+class Screen(Window, metaclass=singleton.Singleton):
+    '''
+    Singleton class which represents the console which the user is playing on.
+    '''
+    stdscr = None
+
+    def __init__(self):
+        self.stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        curses.curs_set(0)
+        self.stdscr.keypad(True)
+        self.stdscr.nodelay(True)
+        self.window = self.stdscr
+        super().__init__(self.stdscr)
+
+    def exit(self):
+        curses.nocbreak()
+        curses.curs_set(0)
+        self.stdscr.keypad(False)
+        curses.echo()
+        curses.endwin()
+
+    def poll_events(self, event_handler: es.Event_system):
+        keypress = self.window.getch()
+        if keypress == curses.KEY_RESIZE:
+            [height, width] = self.get_dimension()
+            self._resize(0, 0, width, height)
+        if keypress != -1:
+            event_handler.dispatch_event(Key_event(keypress))
+
