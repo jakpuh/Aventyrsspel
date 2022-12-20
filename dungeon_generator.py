@@ -6,7 +6,7 @@ class Dungeon_generator():
     def __init__(self, layout_generator: Layout_generator):
         self.layout_generator = layout_generator
 
-    def generate(self, screen, hotbar) -> list[Room]:
+    def generate(self, screen, left_sidebar, right_sidebar) -> list[Room]:
     #def generate(self):
         adj_layout = self.layout_generator.generate(3, 3)
         adj_rooms = []
@@ -23,7 +23,7 @@ class Dungeon_generator():
                     room.neighbours['D'] = neighbour[0]
                 else:
                     raise Exception("Invalid neighbour direction")
-            room.scene = Scene(room.neighbours.keys(), screen, hotbar)
+            room.scene = Scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar)
             adj_rooms.append(room)
         return adj_rooms
 

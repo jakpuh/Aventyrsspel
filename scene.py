@@ -9,12 +9,13 @@ from object_storage import Object_storage
 from typing import Optional
 
 class Scene():
-    def __init__(self, wall_dirs, screen, hotbar):
+    def __init__(self, wall_dirs, screen, left_sidebar, right_sidebar):
         self.world = core.World()
         self.event_handler = core.Event_system()
         self.exit_lst = []
         self.screen = screen
-        self.hotbar = hotbar
+        self.left_sidebar = left_sidebar
+        self.right_sidebar = right_sidebar
 
         collision_system = self.world.add_system(sys.S_collision(self.event_handler, screen))
         tick_system   = self.world.add_system(sys.S_tick(self.event_handler))

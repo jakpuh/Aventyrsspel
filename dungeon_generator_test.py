@@ -15,12 +15,14 @@ import time
 
 FPS = 30
 
-main_window = core.Screen().create_window(0, 0, 0.9, 1)
-hotbar_window = core.Screen().create_window(0.9, 0.0, 0.1, 0.1)
+main_window = core.Screen().create_window(0.1, 0, 0.8, 1)
+left_sidebar = core.Screen().create_window(0.0, 0.0, 0.1, 1) 
+right_sidebar = core.Screen().create_window(0.9, 0.0, 0.1, 1)
 storage_builder.fill_object_storage()
 
 generator = Dungeon_generator(Layout_generator_spanning())
-rooms = generator.generate(main_window, hotbar_window)
+rooms = generator.generate(main_window, left_sidebar, right_sidebar)
+# rooms = generator.generate(main_window, right_sidebar)
 
 current_room = 0
 player1 = rooms[current_room].scene.world.create_entity()
@@ -35,9 +37,9 @@ tran_comp.last_y = 0.5
 
 POS = {
     'U': (0.8, None),
-    'D': (0.1, None),
-    'R': (None, 0.1),
-    'L': (None, 0.9)
+    'D': (0.2, None),
+    'R': (None, 0.2),
+    'L': (None, 0.8)
 }
 
 dt = 0 
