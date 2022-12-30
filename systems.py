@@ -37,7 +37,6 @@ class S_render(core.System):
         for entity in self.registered_entities:
             [comp_sprite, comp_trans] = entity.query_components([comp.C_sprite, comp.C_transform])
             self.screen.draw_texture(comp_sprite.texture, comp_trans.x, comp_trans.y)
-        self.screen.window.box()
 
 class S_player(core.System):
     component_mask = [comp.C_player, comp.C_transform]
@@ -227,4 +226,3 @@ class S_debug_render_rectangle(core.System):
             # TODO: don't assume that it uses relative position
             [comp_rectangle, comp_trans] = entity.query_components([comp.C_rectangle, comp.C_transform])
             self.screen.draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)
-        self.screen.window.box()
