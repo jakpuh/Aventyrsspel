@@ -127,6 +127,6 @@ class Scene():
     def run(self, dt) -> list[str]:
         del self.exit_lst[:]
         # core.Screen_wrapper().poll_events(self.event_handler)
-        core.Screen().poll_events(self.event_handler)
+        core.screen.poll_events(self.event_handler)
         self.world.run(dt)
         return self.exit_lst
