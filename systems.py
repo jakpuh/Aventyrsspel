@@ -208,8 +208,12 @@ class H_exit():
         comp_exit1 = event.entity1.query_components([comp.C_exit])
         comp_exit2 = event.entity2.query_components([comp.C_exit])
         if len(comp_exit1) == 1:
+            if len(event.entity2.query_components([comp.C_player])) == 0:
+                return 
             self.exit_lst.append(comp_exit1[0].name)
         if len(comp_exit2) == 1:
+            if len(event.entity1.query_components([comp.C_player])) == 0:
+                return
             self.exit_lst.append(comp_exit2[0].name)
 
 

@@ -51,9 +51,9 @@ class Window():
     
     def _resize(self, abs_x: int, abs_y: int, abs_width: int, abs_height: int):
         # TODO: reinit each window / reconstruct / create a new window with the correct dimensions. This is slower? but this shouldn't matter
-        # self.window.resize(1, 1) # otherwise mvwin will move the window out of bounds which will make the program crash
-        # self.window.mvwin(abs_y, abs_x)
-        # self.window.resize(abs_height, abs_width)
+        self.window.resize(1, 1) # otherwise mvwin will move the window out of bounds which will make the program crash
+        self.window.mvwin(abs_y, abs_x)
+        self.window.resize(abs_height, abs_width)
         # del self.window
         # self.window = self.window.derwin(abs_height, abs_width, abs_y, abs_x)
         for child in self.children:
