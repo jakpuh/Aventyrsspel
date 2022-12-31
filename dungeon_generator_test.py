@@ -54,7 +54,7 @@ def main():
 
         # scene.run(dt)
         ret_lst = rooms[current_room].scene.run(dt)
-        print(last_dirs)
+        # print(last_dirs)
         for ret in ret_lst:
             if ret in "UDRL":
                 last_dirs = last_dirs[1:]

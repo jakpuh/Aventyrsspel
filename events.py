@@ -11,3 +11,11 @@ class Collision_event(core.Event):
         super().__init__()
         self.entity1 = entity1
         self.entity2 = entity2
+
+# ========== DEBUG =================00
+
+class Log_event(core.Event):
+    def __init__(self, key, value):
+        super().__init__()
+        self.key = key 
+        self.value = value

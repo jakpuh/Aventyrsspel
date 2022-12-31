@@ -49,3 +49,8 @@ def fill_object_storage():
         comp.C_rectangle(None, None)
         #comp.C_sprite(["####","####","####","####"])
     ])
+
+    Object_storage().add("Item", "Text",[
+        comp.C_transform(0, 0),
+        comp.C_text(None)
+    ])

@@ -60,7 +60,6 @@ class Window():
             child[0]._resize(int(child[1][0] * abs_width), int(child[1][1] * abs_height), int(child[1][2] * abs_width), int(child[1][3] * abs_height))
 
     def draw_rectangle(self, rel_x: Number, rel_y: Number, rel_width: Number, rel_height: Number):
-        [max_height, max_width] = self.get_dimension()
         [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y) 
         [abs_width, abs_height] = self.rel_to_abs(rel_width, rel_height) 
         top = abs_y + abs_height
@@ -70,6 +69,10 @@ class Window():
             self.draw_row("#", abs_x + abs_width, abs_y)
             abs_y += 1
         self.draw_row("#"*abs_width, abs_x, top)
+
+    def draw_text(self, rel_x: Number, rel_y: Number, text: str):
+        [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y) 
+        self.draw_row(text, abs_x, abs_y)
 
 class Screen(Window):
     def _wrapper(self, stdscr, func):

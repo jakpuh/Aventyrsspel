@@ -70,8 +70,16 @@ class C_exit(core.Component):
     def __init__(self, name):
         self.name = name
 
+# No entity should have this component which means the system does not require to iterate through entities
+class C_none(core.Component):
+    pass
+
 # ================== DEBUG COMPONENTS (not actually used in the game)======================
 class C_rectangle(core.Component):
     def __init__(self, width, height):
         self.width = width
         self.height = height
+
+class C_text(core.Component):
+    def __init__(self, text: str):
+        self.text = text

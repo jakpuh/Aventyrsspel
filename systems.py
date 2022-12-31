@@ -17,6 +17,7 @@ class S_tick(core.System):
     def run(self, dt):
         if (self.tot_dt >= 0.05):
             self.event_handler.dispatch_event(evt.Tick_event())
+            self.event_handler.dispatch_event(evt.Log_event("ticks: ", self.tot_dt))
             self.tot_dt = 0
         else:
             self.tot_dt += dt
@@ -230,3 +231,34 @@ class S_debug_render_rectangle(core.System):
             # TODO: don't assume that it uses relative position
             [comp_rectangle, comp_trans] = entity.query_components([comp.C_rectangle, comp.C_transform])
             self.screen.draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)
+
+class S_debug_render_text(core.System):
+    component_mask = [comp.C_text, comp.C_transform]
+
+    def __init__(self, screen: core.Window):
+        super().__init__()
+        self.screen = screen
+
+    def run(self, dt):
+        for entity in self.registered_entities:
+            [comp_text, comp_tran] = entity.query_components([comp.C_text, comp.C_transform])
+            self.screen.draw_text(comp_tran.x, comp_tran.y, comp_text.text)
+            self.screen.refresh()
+
+class S_logging(core.System):
+    component_mask = [comp.C_none]
+
+    def __init__(self, screen: core.Window):
+        super().__init__()
+        self.screen = screen
+        self.d = {}
+
+    def on_log_event(self, event: evt.Log_event):
+        self.d[event.key] = event.value
+
+    def run(self, dt):
+        i = 0
+        for key, value in self.d.items():
+            self.screen.draw_text(0, i, str(key) + ": " + str(value))
+            i += 0.1
+        self.screen.refresh()

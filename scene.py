@@ -26,6 +26,8 @@ class Scene():
         impenetrable_system = self.world.add_system(sys.S_impenetrable())
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
+        # text_system = self.world.add_system(sys.S_debug_render_text(right_sidebar))
+        log_system = self.world.add_system(sys.S_logging(right_sidebar))
 
         exit_handler = sys.H_exit(self.exit_lst)
         thorn_handler = sys.H_thorn()
@@ -62,10 +64,15 @@ class Scene():
 
         self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)
         self.event_handler.subscribe_event(evt.Tick_event(), ghost_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Log_event(None, None), log_system.on_log_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), ghost_system.on_collision_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), impenetrable_system.on_collision_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), exit_handler.on_collision_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), thorn_handler.on_collision_event)
+
+        entity = self.clone_entity("Item", "Text")
+        [comp_text] = entity.query_components([comp.C_text])
+        comp_text.text = "hello"
     
     def clone_entity(self, object_class: str, object_name: str):
         entity = self.world.create_entity()
