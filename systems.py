@@ -7,10 +7,17 @@ import components as comp
 import events as evt
 from object_storage import Object_storage
 
+INVINC_TIME = 21
+
+# for debugging
+event_handler_global = None
+
 class S_tick(core.System):
     component_mask = [None]
     def __init__(self, event_handler):
+        global event_handler_global
         super().__init__() 
+        event_handler_global = event_handler
         self.event_handler = event_handler 
         self.tot_dt = 0
 
@@ -188,18 +195,69 @@ class S_impenetrable(core.System):
             comp_trans1.x = comp_trans1.last_x
             comp_trans1.y = comp_trans1.last_y
 
+class S_blink(core.System):
+    component_mask = [comp.C_blink, comp.C_sprite]
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self, dt):
+        pass
+
+    def on_tick_event(self, event: evt.Tick_event):
+        for entity in self.registered_entities:
+            [comp_blink, comp_sprite] = entity.query_components([comp.C_blink, comp.C_sprite])
+            tmp_text = comp_sprite.texture
+            comp_sprite.texture = comp_blink.next_texture
+            comp_blink.next_texture = tmp_text
+
+# Does an action after a specified amount of time / ticks
+class H_delay():
+    def __init__(self):
+        self.actions = []
+
+    def on_tick_event(self, event: evt.Tick_event):
+        for i,(action,delay) in enumerate(self.actions):
+            if delay == 0:
+                action()
+                # swap with the last element instead for better performance
+                self.actions.pop(i)
+                continue
+            self.actions[i][1] -= 1
+
+    def on_delay_event(self, event: evt.Delay_event):
+        self.actions.append([event.action, event.delay])
+
 class H_thorn():
+    def __init__(self, event_handler: core.Event_system):
+        self.event_handler = event_handler
+
     def on_collision_event(self, event: evt.Collision_event):
+
+        # TODO: call take damage event or something similar and do the checks in the health_system instead
         comp_thorn1 = event.entity1.query_components([comp.C_thorn])
         comp_health1 = event.entity1.query_components([comp.C_health])
         comp_thorn2 = event.entity2.query_components([comp.C_thorn])
         comp_health2 = event.entity2.query_components([comp.C_health])
         if len(comp_thorn1) != 0:
-            if len(comp_health2) != 0:
+            if len(comp_health2) != 0 and len(event.entity2.query_components([comp.C_invincible])) == 0:
                 comp_health2[0].health -= comp_thorn1[0].damage
+                event.entity2.add_component(comp.C_invincible())
+                event.entity2.add_component(comp.C_blink())
+                # OBS: INVIC_TIME has to be odd, otherwise the player will be invisible when blink components get removed
+                self.event_handler.dispatch_event(evt.Delay_event(
+                    lambda: event.entity2.remove_component(comp.C_invincible), INVINC_TIME))
+                self.event_handler.dispatch_event(evt.Delay_event(
+                    lambda: event.entity2.remove_component(comp.C_blink), INVINC_TIME))
         if len(comp_thorn2) != 0:
-            if len(comp_health1) != 0:
+            if len(comp_health1) != 0 and len(event.entity1.query_components([comp.C_invincible])) == 0:
                 comp_health1[0].health -= comp_thorn2[0].damage
+                event.entity1.add_component(comp.C_invincible())
+                event.entity2.add_component(comp.C_blink())
+                self.event_handler.dispatch_event(evt.Delay_event(
+                    lambda: event.entity1.remove_component(comp.C_invincible), INVINC_TIME))
+                self.event_handler.dispatch_event(evt.Delay_event(
+                    lambda: event.entity1.remove_component(comp.C_blink), INVINC_TIME))
 
 class H_exit():
     def __init__(self, exit_lst):
@@ -244,6 +302,19 @@ class S_debug_render_text(core.System):
             [comp_text, comp_tran] = entity.query_components([comp.C_text, comp.C_transform])
             self.screen.draw_text(comp_tran.x, comp_tran.y, comp_text.text)
             self.screen.refresh()
+
+class S_debug_player(core.System):
+    component_mask = [comp.C_health, comp.C_player]
+
+    def __init__(self, event_handler: core.Event_system):
+        super().__init__()
+        self.event_handler = event_handler
+
+    def run(self, dt):
+        for entity in self.registered_entities:
+            [comp_health] = entity.query_components([comp.C_health])
+            self.event_handler.dispatch_event(evt.Log_event("Player_health: ", comp_health.health))
+            
 
 class S_logging(core.System):
     component_mask = [comp.C_none]

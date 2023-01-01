@@ -12,6 +12,11 @@ class Collision_event(core.Event):
         self.entity1 = entity1
         self.entity2 = entity2
 
+class Delay_event(core.Event):
+    def __init__(self, action, delay):
+        self.action = action
+        self.delay = delay
+
 # ========== DEBUG =================00
 
 class Log_event(core.Event):

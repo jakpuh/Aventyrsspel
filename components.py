@@ -28,6 +28,9 @@ class C_thorn():
 class C_impenetrable():
     pass
 
+class C_invincible():
+    pass
+
 class C_transform(core.Component):
     def __init__(self, x, y):
         # used to revert position when colliding with a wall
@@ -58,6 +61,10 @@ class C_move(core.Component):
 class C_lifetime(core.Component):
     def __init__(self, lifetime):
         self.lifetime = lifetime
+
+class C_blink(core.Component):
+    def __init__(self):
+        self.next_texture = [""]
 
 class C_child_of(core.Component):
     def __init__(self, parent):
