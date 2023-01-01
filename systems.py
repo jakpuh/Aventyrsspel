@@ -7,7 +7,8 @@ import components as comp
 import events as evt
 from object_storage import Object_storage
 
-INVINC_TIME = 21
+# Needs to be even
+INVINC_TIME = 20
 
 # for debugging
 event_handler_global = None
@@ -55,11 +56,23 @@ class S_player(core.System):
         ord('a'): [0, -1]
     }
 
-    def __init__(self):
+    def __init__(self, event_handler: core.Event_system):
         super().__init__()
+        self.event_handler = event_handler
 
     def run(self, dt):
-        pass
+        for entity in self.registered_entities:
+            comp_invinc = entity.query_components([comp.C_invincible])
+            comp_blink = entity.query_components([comp.C_blink])
+            has_inv = True
+            if len(comp_invinc) == 0:
+                has_inv = False
+            has_blink = True
+            if len(comp_blink) == 0:
+                has_blink = False
+
+            self.event_handler.dispatch_event(evt.Log_event("Has invun: ", has_inv))
+            self.event_handler.dispatch_event(evt.Log_event("Has blink: ", has_blink))
 
     # refactor screen_wrapper; don't use event handler
     # move this to the run function
@@ -225,13 +238,17 @@ class H_delay():
         self.actions = []
 
     def on_tick_event(self, event: evt.Tick_event):
+        done_lst = []
         for i,(action,delay) in enumerate(self.actions):
             if delay == 0:
                 action()
                 # swap with the last element instead for better performance
-                self.actions.pop(i)
+                done_lst.append(i)
                 continue
             self.actions[i][1] -= 1
+        done_lst.reverse()
+        for i in done_lst:
+            self.actions.pop(i)
 
     def on_delay_event(self, event: evt.Delay_event):
         self.actions.append([event.action, event.delay])
@@ -257,7 +274,7 @@ class H_thorn():
                 comp_health2[0].health -= comp_thorn1[0].damage
                 event.entity2.add_component(comp.C_invincible())
                 event.entity2.add_component(comp.C_blink())
-                # OBS: INVIC_TIME has to be odd, otherwise the player will be invisible when blink components get removed
+                # OBS: INVIC_TIME has to be even, otherwise the player will be invisible when blink components get removed
                 self.event_handler.dispatch_event(evt.Delay_event(
                     lambda: event.entity2.remove_component(comp.C_invincible), INVINC_TIME))
                 self.event_handler.dispatch_event(evt.Delay_event(

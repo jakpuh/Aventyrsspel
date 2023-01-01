@@ -20,7 +20,7 @@ class Scene():
         collision_system = self.world.add_system(sys.S_collision(self.event_handler, screen))
         tick_system   = self.world.add_system(sys.S_tick(self.event_handler))
         render_system = self.world.add_system(sys.S_render(screen))
-        player_system = self.world.add_system(sys.S_player())
+        player_system = self.world.add_system(sys.S_player(self.event_handler))
         ghost_system = self.world.add_system(sys.S_ghost(self))
         lifetime_system = self.world.add_system(sys.S_lifetime())
         impenetrable_system = self.world.add_system(sys.S_impenetrable())
