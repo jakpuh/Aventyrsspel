@@ -57,6 +57,7 @@ def main():
         # print(last_dirs)
         for ret in ret_lst:
             if ret in "UDRL":
+                rooms[current_room].scene.cleanup()
                 last_dirs = last_dirs[1:]
                 last_dirs.append(ret)
                 next_room = rooms[current_room].neighbours[ret]

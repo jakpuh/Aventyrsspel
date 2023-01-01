@@ -75,6 +75,8 @@ class Scene():
         self.event_handler.subscribe_event(evt.Collision_event(None, None), exit_handler.on_collision_event)
         self.event_handler.subscribe_event(evt.Collision_event(None, None), thorn_handler.on_collision_event)
         self.event_handler.subscribe_event(evt.Delay_event(None, None), delay_handler.on_delay_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event(), blink_system.on_cleanup_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event(), delay_handler.on_cleanup_event)
 
         entity = self.clone_entity("Item", "Text")
         [comp_text] = entity.query_components([comp.C_text])
@@ -143,3 +145,7 @@ class Scene():
         core.screen.poll_events(self.event_handler)
         self.world.run(dt)
         return self.exit_lst
+
+    # cleans the rooms before a switch
+    def cleanup(self):
+        self.event_handler.dispatch_event(evt.Cleanup_event())

@@ -211,6 +211,14 @@ class S_blink(core.System):
             comp_sprite.texture = comp_blink.next_texture
             comp_blink.next_texture = tmp_text
 
+    def on_cleanup_event(self, event: evt.Cleanup_event):
+        for entity in self.registered_entities:
+            [comp_blink, comp_sprite] = entity.query_components([comp.C_blink, comp.C_sprite])
+            if comp_sprite.texture == [""]:
+                tmp_text = comp_sprite.texture
+                comp_sprite.texture = comp_blink.next_texture
+                comp_blink.next_texture = tmp_text
+
 # Does an action after a specified amount of time / ticks
 class H_delay():
     def __init__(self):
@@ -227,6 +235,11 @@ class H_delay():
 
     def on_delay_event(self, event: evt.Delay_event):
         self.actions.append([event.action, event.delay])
+
+    def on_cleanup_event(self, event: evt.Cleanup_event):
+        for action,delay in self.actions:
+            action()
+        self.actions = []
 
 class H_thorn():
     def __init__(self, event_handler: core.Event_system):

@@ -17,6 +17,9 @@ class Delay_event(core.Event):
         self.action = action
         self.delay = delay
 
+class Cleanup_event(core.Event):
+    pass
+
 # ========== DEBUG =================00
 
 class Log_event(core.Event):
