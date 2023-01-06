@@ -6,6 +6,8 @@ import core
 import components as comp
 import events as evt
 from object_storage import Object_storage
+import random as rand
+import math
 
 # Needs to be even
 INVINC_TIME = 20
@@ -64,6 +66,8 @@ class S_player(core.System):
         for entity in self.registered_entities:
             comp_invinc = entity.query_components([comp.C_invincible])
             comp_blink = entity.query_components([comp.C_blink])
+            [comp_tran] = entity.query_components([comp.C_transform])
+
             has_inv = True
             if len(comp_invinc) == 0:
                 has_inv = False
@@ -71,8 +75,9 @@ class S_player(core.System):
             if len(comp_blink) == 0:
                 has_blink = False
 
-            self.event_handler.dispatch_event(evt.Log_event("Has invun: ", has_inv))
-            self.event_handler.dispatch_event(evt.Log_event("Has blink: ", has_blink))
+            self.event_handler.dispatch_event(evt.Log_event("Has invun", has_inv))
+            self.event_handler.dispatch_event(evt.Log_event("Has blink", has_blink))
+            self.event_handler.dispatch_event(evt.Log_event("Position", f"{comp_tran.x:.2f}" + " " + f"{comp_tran.y:.2f}"))
 
     # refactor screen_wrapper; don't use event handler
     # move this to the run function
@@ -89,20 +94,21 @@ class S_player(core.System):
             comp_trans.x += self.KEYMAP[event.key][1] * 0.02
 
 class S_ghost(core.System):
-    component_mask = [comp.C_ghost, comp.C_transform]
+    component_mask = [comp.C_ghost, comp.C_transform, comp.C_ai]
     def __init__(self, world):
         super().__init__()
         self.world = world
     
     def run(self, dt):
         for entity in self.registered_entities:
-            [comp_ghost, comp_tran] = entity.query_components([comp.C_ghost, comp.C_transform])
-            if comp_ghost.target == None:
+            [comp_ghost, comp_tran, comp_ai] = entity.query_components([comp.C_ghost, comp.C_transform, comp.C_ai])
+            if comp_ghost.target == None or comp_ghost.state == comp.C_ghost.STILL:
                 continue
             if abs(comp_tran.x - comp_ghost.target[0]) < comp_ghost.speed * dt and abs(comp_tran.y - comp_ghost.target[1]) < comp_ghost.speed * dt:
                 comp_ghost.state = comp_ghost.STILL
-            if comp_ghost.state == comp_ghost.STILL:
+                comp_ai.disable = 20
                 continue
+            comp_ai.disable = float("inf")
             comp_tran.last_x = comp_tran.x
             comp_tran.last_y = comp_tran.y
             comp_tran.x += (1 if comp_ghost.target[0] > comp_tran.x else -1) * comp_ghost.speed * dt
@@ -134,19 +140,149 @@ class S_ghost(core.System):
         entity2_player = event.entity2.query_components([comp.C_player, comp.C_transform])
         if len(entity1_range) == 2 and len(entity2_player) == 2:
             # comp_ghost = self.world.query_components(entity1_range[1].parent, [comp.C_ghost])
-            comp_ghost = entity1_range[1].parent.query_components([comp.C_ghost])
-            if len(comp_ghost) == 0:
+            comp_ghost = entity1_range[1].parent.query_components([comp.C_ghost, comp.C_ai])
+            if len(comp_ghost) != 2:
                 return
             comp_ghost[0].target = [entity2_player[1].x, entity2_player[1].y]
             comp_ghost[0].state = comp_ghost[0].MOVING
+            comp_ghost[1].disable = float("inf")
         elif len(entity1_player) == 2 and len(entity2_range) == 2:
             # comp_ghost = self.world.query_components(entity2_range[1].parent, [comp.C_ghost])
-            comp_ghost = entity2_range[1].parent.query_components([comp.C_ghost])
+            comp_ghost = entity2_range[1].parent.query_components([comp.C_ghost, comp.C_ai])
             # TODO: fix
-            if len(comp_ghost) == 0:
+            if len(comp_ghost) != 2:
                 return
             comp_ghost[0].target = [entity1_player[1].x, entity1_player[1].y]
             comp_ghost[0].state = comp_ghost[0].MOVING
+            comp_ghost[1].disable = float("inf")
+
+class S_gangster(core.System):
+    component_mask = [comp.C_gangster, comp.C_ai, comp.C_transform]
+
+    def __init__(self, event_handler: core.Event_system, world: core.World):
+        super().__init__()
+        self.event_handler = event_handler
+        self.world = world
+
+    def run(self, dt):
+        pass
+
+    def on_tick_event(self, event):
+        #TODO: Maybe create a box with a hitbox
+        #      when player in box -> event will get called
+        for entity in self.registered_entities:
+            [tran_comp] = entity.query_components([comp.C_transform])
+
+            # TODO: make the entity follow the ghost instead of having a lifetime
+            range_entity = self.world.create_entity()
+            range_entity.add_component(comp.C_child_of(entity)) 
+            range_entity.add_component(comp.C_lifetime(3)) 
+            range_entity.add_component(comp.C_hitbox(0.75, 0.75, True)) 
+            range_entity.add_component(comp.C_transform(tran_comp.x - 0.75 / 2, tran_comp.y - 0.75 / 2)) 
+            #range_entity.add_component(comp.C_transform(0, 0)) 
+            range_entity.add_component(comp.C_range())
+            range_entity.add_component(comp.C_rectangle(0.75, 0.75))
+            # range_entity.add_component(comp.C_sprite("#"))
+
+            [comp_ai, comp_gangster] = entity.query_components([comp.C_ai, comp.C_gangster])
+            if comp_gangster.state != comp.C_gangster.SHOOTING:
+                continue
+            bullet_entity = self.world.create_entity()
+            bullet_components = Object_storage().get("Projectile", "Bullet")
+            for component in bullet_components:
+                bullet_entity.add_component(component)
+            [bullet_tran_comp, comp_bullet] = bullet_entity.query_components([comp.C_transform, comp.C_bullet])
+            bullet_tran_comp.x = tran_comp.x
+            bullet_tran_comp.y = tran_comp.y
+            bullet_tran_comp.last_x = tran_comp.x
+            bullet_tran_comp.last_y = tran_comp.y
+            # calculate the angle to target
+            angle = math.atan((comp_gangster.target[1] - tran_comp.y) / (comp_gangster.target[0] - tran_comp.x))
+            comp_bullet.dir = angle + (0 if comp_gangster.target[0] > tran_comp.x else math.pi)
+
+    def on_collision_event(self, event: evt.Collision_event):
+        # TODO: fix this, maybe by creating a lambda? or sort the types
+        entity1_range = event.entity1.query_components([comp.C_range, comp.C_child_of]) 
+        entity2_range = event.entity2.query_components([comp.C_range, comp.C_child_of])
+        entity1_player = event.entity1.query_components([comp.C_player, comp.C_transform])
+        entity2_player = event.entity2.query_components([comp.C_player, comp.C_transform])
+        if len(entity1_range) == 2 and len(entity2_player) == 2:
+            comp_gangster = entity1_range[1].parent.query_components([comp.C_gangster, comp.C_ai])
+            if len(comp_gangster) != 2:
+                return
+            comp_gangster[0].target = [entity2_player[1].x, entity2_player[1].y]
+            comp_gangster[0].state = comp_gangster[0].SHOOTING
+            comp_gangster[1].disable = float("INF")
+        elif len(entity1_player) == 2 and len(entity2_range) == 2:
+            comp_gangster = entity2_range[1].parent.query_components([comp.C_gangster, comp.C_ai])
+            # TODO: fix
+            if len(comp_gangster) != 2:
+                return
+            comp_gangster[0].target = [entity1_player[1].x, entity1_player[1].y]
+            comp_gangster[0].state = comp_gangster[0].SHOOTING
+            comp_gangster[1].disable = float("INF")
+
+class S_bullet(core.System):
+    component_mask = [comp.C_bullet, comp.C_transform]
+
+    def __init__(self, event_handler: core.Event_system):
+        super().__init__()
+        self.event_handler = event_handler
+
+    def run(self, dt):
+        for entity in self.registered_entities:
+            [comp_bull, comp_tran] = entity.query_components([comp.C_bullet, comp.C_transform])
+            self.event_handler.dispatch_event(evt.Log_event("Bullet dir", comp_bull.dir * 180 / math.pi))
+            hor_move = math.cos(comp_bull.dir) * dt * comp_bull.speed
+            ver_move = math.sin(comp_bull.dir) * dt * comp_bull.speed
+            comp_tran.last_x = comp_tran.x
+            comp_tran.last_y = comp_tran.y
+            comp_tran.x += hor_move
+            comp_tran.y += ver_move
+
+    def on_collision_event(self, event: evt.Collision_event):
+        comp_imp1 = event.entity1.query_components([comp.C_impenetrable]) 
+        comp_imp2 = event.entity2.query_components([comp.C_impenetrable]) 
+        comp_bull1 = event.entity1.query_components([comp.C_bullet]) 
+        comp_bull2 = event.entity2.query_components([comp.C_bullet]) 
+        if len(comp_imp1) != 0 and len(comp_bull2) != 0:
+            event.entity2.destroy_entity()
+        if len(comp_imp2) != 0 and len(comp_bull1) != 0:
+            event.entity1.destroy_entity()
+
+    def on_cleanup_event(self, event: evt.Cleanup_event):
+        count = 0
+        while len(self.registered_entities) > 0:
+            self.registered_entities[0].destroy_entity()    # modifies the registered entities list which means we do not need to manually remove element from the list
+            count += 1
+        self.event_handler.dispatch_event(evt.Log_event("CLEANED", count))
+
+class S_ai(core.System):
+    component_mask = [comp.C_ai, comp.C_transform]
+
+    def __init__(self, event_handler: core.Event_system):
+        super().__init__()
+        self.event_handler = event_handler
+
+    def run(self, dt):
+        for entity in self.registered_entities:
+            [comp_ai, comp_tran] = entity.query_components([comp.C_ai, comp.C_transform])
+            if comp_ai.disable > 0:
+                continue
+            if comp_ai.target != None:
+                self.event_handler.dispatch_event(evt.Log_event("Ai_target: ", f"{comp_ai.target[0]:.2f}, {comp_ai.target[1]:.2f}"))
+            if comp_ai.target == None or (abs(comp_ai.target[0] - comp_tran.x) < comp_ai.speed * dt and (comp_ai.target[1] - comp_tran.y) < comp_ai.speed * dt):
+                new_x = rand.uniform(0.2, 0.8)
+                new_y = rand.uniform(0.2, 0.8)
+                comp_ai.target = (new_x, new_y)
+            comp_tran.x += (1 if comp_ai.target[0] > comp_tran.x else -1) * comp_ai.speed * dt
+            comp_tran.y += (1 if comp_ai.target[1] > comp_tran.y else -1) * comp_ai.speed * dt
+
+    def on_tick_event(self, event: evt.Tick_event):
+        for entity in self.registered_entities:
+            [comp_ai] = entity.query_components([comp.C_ai])
+            comp_ai.disable -= min(comp_ai.disable, 1)  # disable should always be a non negative integer
+
 
 class S_lifetime(core.System):
     component_mask = [comp.C_lifetime]
@@ -173,8 +309,12 @@ class S_collision(core.System):
             for j,entity2 in enumerate(self.registered_entities):
                 if j <= i:
                     continue
-                [hit_comp1, tran_comp1] = entity1.query_components([comp.C_hitbox, comp.C_transform])
-                [hit_comp2, tran_comp2] = entity2.query_components([comp.C_hitbox, comp.C_transform])
+                # 🤫
+                try:
+                    [hit_comp1, tran_comp1] = entity1.query_components([comp.C_hitbox, comp.C_transform])
+                    [hit_comp2, tran_comp2] = entity2.query_components([comp.C_hitbox, comp.C_transform])
+                except: 
+                    continue
                 # rel_hit_comp1 = self.screen.abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
                 # rel_hit_comp2 = self.screen.abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
                 rel_hit_comp1 = self.screen.abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
@@ -263,14 +403,14 @@ class H_thorn():
         self.event_handler = event_handler
 
     def on_collision_event(self, event: evt.Collision_event):
-
         # TODO: call take damage event or something similar and do the checks in the health_system instead
         comp_thorn1 = event.entity1.query_components([comp.C_thorn])
         comp_health1 = event.entity1.query_components([comp.C_health])
         comp_thorn2 = event.entity2.query_components([comp.C_thorn])
         comp_health2 = event.entity2.query_components([comp.C_health])
         if len(comp_thorn1) != 0:
-            if len(comp_health2) != 0 and len(event.entity2.query_components([comp.C_invincible])) == 0:
+            comp_player = event.entity2.query_components([comp.C_player])
+            if len(comp_player) != 0 and len(comp_health2) != 0 and len(event.entity2.query_components([comp.C_invincible])) == 0:
                 comp_health2[0].health -= comp_thorn1[0].damage
                 event.entity2.add_component(comp.C_invincible())
                 event.entity2.add_component(comp.C_blink())
@@ -280,10 +420,11 @@ class H_thorn():
                 self.event_handler.dispatch_event(evt.Delay_event(
                     lambda: event.entity2.remove_component(comp.C_blink), INVINC_TIME))
         if len(comp_thorn2) != 0:
-            if len(comp_health1) != 0 and len(event.entity1.query_components([comp.C_invincible])) == 0:
+            comp_player = event.entity1.query_components([comp.C_player])
+            if len(comp_player) != 0 and len(comp_health1) != 0 and len(event.entity1.query_components([comp.C_invincible])) == 0:
                 comp_health1[0].health -= comp_thorn2[0].damage
                 event.entity1.add_component(comp.C_invincible())
-                event.entity2.add_component(comp.C_blink())
+                event.entity1.add_component(comp.C_blink())
                 self.event_handler.dispatch_event(evt.Delay_event(
                     lambda: event.entity1.remove_component(comp.C_invincible), INVINC_TIME))
                 self.event_handler.dispatch_event(evt.Delay_event(
@@ -344,7 +485,14 @@ class S_debug_player(core.System):
         for entity in self.registered_entities:
             [comp_health] = entity.query_components([comp.C_health])
             self.event_handler.dispatch_event(evt.Log_event("Player_health: ", comp_health.health))
-            
+
+class H_debug_keypress():
+    def __init__(self, event_handler: core.Event_system):
+        self.event_handler = event_handler
+    
+    def on_key_event(self, event: core.Key_event):
+        if event.key == ord('f'):
+            self.event_handler.dispatch_event(evt.Cleanup_event())
 
 class S_logging(core.System):
     component_mask = [comp.C_none]
@@ -361,5 +509,5 @@ class S_logging(core.System):
         i = 0
         for key, value in self.d.items():
             self.screen.draw_text(0, i, str(key) + ": " + str(value))
-            i += 0.1
+            i += 0.05
         self.screen.refresh()

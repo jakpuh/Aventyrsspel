@@ -6,82 +6,9 @@ import components as comp
 import systems as sys 
 import events as evt
 from object_storage import Object_storage
-from typing import Optional
+import math
 
 class Scene():
-    def __init__(self, wall_dirs, screen, left_sidebar, right_sidebar):
-        self.world = core.World()
-        self.event_handler = core.Event_system()
-        self.exit_lst = []
-        self.screen = screen
-        self.left_sidebar = left_sidebar
-        self.right_sidebar = right_sidebar
-
-        collision_system = self.world.add_system(sys.S_collision(self.event_handler, screen))
-        tick_system   = self.world.add_system(sys.S_tick(self.event_handler))
-        render_system = self.world.add_system(sys.S_render(screen))
-        player_system = self.world.add_system(sys.S_player(self.event_handler))
-        ghost_system = self.world.add_system(sys.S_ghost(self))
-        lifetime_system = self.world.add_system(sys.S_lifetime())
-        impenetrable_system = self.world.add_system(sys.S_impenetrable())
-        blink_system = self.world.add_system(sys.S_blink())
-        # ======== DEBUG =========
-        rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
-        player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
-        # text_system = self.world.add_system(sys.S_debug_render_text(right_sidebar))
-        log_system = self.world.add_system(sys.S_logging(right_sidebar))
-
-        exit_handler = sys.H_exit(self.exit_lst)
-        thorn_handler = sys.H_thorn(self.event_handler)
-        delay_handler = sys.H_delay()
-
-        # player_entity = self.clone_entity("Player", "Default") 
-        # [comp_tran] = player_entity.query_components([comp.C_transform])
-        # comp_tran.x = 0.5
-        # comp_tran.y = 0.5
-        # comp_tran.last_y = 0.5
-        # comp_tran.last_x = 0.5
-
-        ghost_entity = self.clone_entity("Monster", "Ghost")
-        [comp_tran] = ghost_entity.query_components([comp.C_transform])
-        comp_tran.x = 0.75
-        comp_tran.y = 0.75
-        comp_tran.last_x = 0.75
-        comp_tran.last_y = 0.75
-        # TODO: (maybe) let the user have a range rectangle, instead of every other entity needing to have one (assuming everyone the same range)
-
-        wall_entity = self.clone_entity("Wall", "Default")
-        [comp_tran] = wall_entity.query_components([comp.C_transform])
-        comp_tran.x = 0.2
-        comp_tran.y = 0.2
-        comp_tran.last_y = 0.2
-        comp_tran.last_x = 0.2
-
-        all_dirs = ['U', 'D', 'L', 'R']
-        no_wall_dirs = list(set(wall_dirs)^set(all_dirs))
-
-        for dir in wall_dirs:
-            self.build_border(dir, True)
-        for dir in no_wall_dirs:
-            self.build_border(dir, False)
-
-        self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), ghost_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), delay_handler.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), blink_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Log_event(None, None), log_system.on_log_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), ghost_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), impenetrable_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), exit_handler.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), thorn_handler.on_collision_event)
-        self.event_handler.subscribe_event(evt.Delay_event(None, None), delay_handler.on_delay_event)
-        self.event_handler.subscribe_event(evt.Cleanup_event(), blink_system.on_cleanup_event)
-        self.event_handler.subscribe_event(evt.Cleanup_event(), delay_handler.on_cleanup_event)
-
-        entity = self.clone_entity("Item", "Text")
-        [comp_text] = entity.query_components([comp.C_text])
-        comp_text.text = "hello"
-    
     def clone_entity(self, object_class: str, object_name: str):
         entity = self.world.create_entity()
         entity_components = Object_storage().get(object_class, object_name)
@@ -149,3 +76,95 @@ class Scene():
     # cleans the rooms before a switch
     def cleanup(self):
         self.event_handler.dispatch_event(evt.Cleanup_event())
+
+class Challenge_scene(Scene):
+    def __init__(self, wall_dirs, screen, left_sidebar, right_sidebar):
+        self.world = core.World()
+        self.event_handler = core.Event_system()
+        self.exit_lst = []
+        self.screen = screen
+        self.left_sidebar = left_sidebar
+        self.right_sidebar = right_sidebar
+
+        # TODO: use system as a prefix instead of suffix
+        collision_system = self.world.add_system(sys.S_collision(self.event_handler, screen))
+        tick_system   = self.world.add_system(sys.S_tick(self.event_handler))
+        render_system = self.world.add_system(sys.S_render(screen))
+        player_system = self.world.add_system(sys.S_player(self.event_handler))
+        ghost_system = self.world.add_system(sys.S_ghost(self))
+        lifetime_system = self.world.add_system(sys.S_lifetime())
+        impenetrable_system = self.world.add_system(sys.S_impenetrable())
+        blink_system = self.world.add_system(sys.S_blink())
+        ai_system = self.world.add_system(sys.S_ai(self.event_handler))
+        gangster_system = self.world.add_system(sys.S_gangster(self.event_handler, self))
+        bullet_system = self.world.add_system(sys.S_bullet(self.event_handler))
+        # ======== DEBUG =========
+        rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
+        player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
+        keypress_debug_handler = sys.H_debug_keypress(self.event_handler)
+        # text_system = self.world.add_system(sys.S_debug_render_text(right_sidebar))
+        log_system = self.world.add_system(sys.S_logging(right_sidebar))
+
+        exit_handler = sys.H_exit(self.exit_lst)
+        thorn_handler = sys.H_thorn(self.event_handler)
+        delay_handler = sys.H_delay()
+
+        ghost_entity = self.clone_entity("Monster", "Ghost")
+        [comp_tran] = ghost_entity.query_components([comp.C_transform])
+        comp_tran.x = 0.75
+        comp_tran.y = 0.75
+        comp_tran.last_x = 0.75
+        comp_tran.last_y = 0.75
+        # TODO: (maybe) let the user have a range rectangle, instead of every other entity needing to have one (assuming everyone the same range)
+
+        gangster_entity = self.clone_entity("Monster", "Gangster")
+        [comp_tran] = gangster_entity.query_components([comp.C_transform])
+        comp_tran.x = 0.25
+        comp_tran.y = 0.75
+        comp_tran.last_x = 0.25
+        comp_tran.last_y = 0.75
+
+        wall_entity = self.clone_entity("Wall", "Default")
+        [comp_tran] = wall_entity.query_components([comp.C_transform])
+        comp_tran.x = 0.2
+        comp_tran.y = 0.2
+        comp_tran.last_y = 0.2
+        comp_tran.last_x = 0.2
+
+        bullet_entity = self.clone_entity("Projectile", "Bullet")
+        [comp_tran, comp_bullet] = bullet_entity.query_components([comp.C_transform, comp.C_bullet])
+        comp_tran.x = 0.75
+        comp_tran.y = 0.25
+        comp_tran.last_y = 0.25
+        comp_tran.last_x = 0.75
+        comp_bullet.dir = 0.1
+
+        all_dirs = ['U', 'D', 'L', 'R']
+        no_wall_dirs = list(set(wall_dirs)^set(all_dirs))
+
+        for dir in wall_dirs:
+            self.build_border(dir, True)
+        for dir in no_wall_dirs:
+            self.build_border(dir, False)
+
+        self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)
+        self.event_handler.subscribe_event(core.Key_event(None), keypress_debug_handler.on_key_event)
+        self.event_handler.subscribe_event(evt.Tick_event(), ghost_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event(), delay_handler.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event(), blink_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event(), gangster_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event(), ai_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Log_event(None, None), log_system.on_log_event)
+        self.event_handler.subscribe_event(evt.Collision_event(None, None), ghost_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event(None, None), gangster_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event(None, None), impenetrable_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event(None, None), exit_handler.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event(None, None), thorn_handler.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event(None, None), bullet_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Delay_event(None, None), delay_handler.on_delay_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event(), blink_system.on_cleanup_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event(), delay_handler.on_cleanup_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event(), bullet_system.on_cleanup_event)
+
+class Puzzle_scene(Scene):
+    pass

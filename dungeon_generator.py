@@ -1,6 +1,6 @@
 from dungeon_generator_algorithm import *
 from room import Room
-from scene import Scene
+from scene import Challenge_scene
 
 class Dungeon_generator():
     def __init__(self, layout_generator: Layout_generator):
@@ -23,7 +23,7 @@ class Dungeon_generator():
                     room.neighbours['D'] = neighbour[0]
                 else:
                     raise Exception("Invalid neighbour direction")
-            room.scene = Scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar)
+            room.scene = Challenge_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar)
             adj_rooms.append(room)
         return adj_rooms
 

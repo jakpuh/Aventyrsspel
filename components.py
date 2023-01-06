@@ -21,6 +21,26 @@ class C_ghost(core.Component):
         self.target = None
         self.state = self.STILL
 
+class C_gangster(core.Component):
+    SHOOTING = 0
+    OBSERVING = 1
+
+    def __init__(self, fire_rate):
+        self.fire_rate = fire_rate
+        self.state = self.OBSERVING
+        self.reload_ticks = 0     # How many ticks this component should wait until it can shoot
+
+class C_ai(core.Component):
+    def __init__(self, speed = 0.01):
+        self.speed = speed
+        self.target = None
+        self.disable = 0    # How many ticks this component should be disabled
+
+class C_bullet(core.Component):
+    def __init__(self, dir, speed):    # dir is a angle in radians
+        self.dir = dir
+        self.speed = speed
+
 class C_thorn():
     def __init__(self, damage):
         self.damage = damage
