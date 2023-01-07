@@ -25,10 +25,11 @@ class C_gangster(core.Component):
     SHOOTING = 0
     OBSERVING = 1
 
-    def __init__(self, fire_rate):
+    def __init__(self, fire_rate, reload_ticks = 10):
         self.fire_rate = fire_rate
         self.state = self.OBSERVING
-        self.reload_ticks = 0     # How many ticks this component should wait until it can shoot
+        self.reload_ticks = reload_ticks     # How many ticks this component should wait until it can shoot
+        self.disable = 0
 
 class C_ai(core.Component):
     def __init__(self, speed = 0.01):

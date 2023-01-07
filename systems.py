@@ -165,7 +165,9 @@ class S_gangster(core.System):
         self.world = world
 
     def run(self, dt):
-        pass
+        for entity in self.registered_entities:
+            [comp_gang] = entity.query_components([comp.C_gangster])
+            self.event_handler.dispatch_event(evt.Log_event("Reload ticks", comp_gang.reload_ticks))
 
     def on_tick_event(self, event):
         #TODO: Maybe create a box with a hitbox
@@ -187,6 +189,9 @@ class S_gangster(core.System):
             [comp_ai, comp_gangster] = entity.query_components([comp.C_ai, comp.C_gangster])
             if comp_gangster.state != comp.C_gangster.SHOOTING:
                 continue
+            if comp_gangster.reload_ticks > 0:
+                comp_gangster.reload_ticks -= 1
+                continue
             bullet_entity = self.world.create_entity()
             bullet_components = Object_storage().get("Projectile", "Bullet")
             for component in bullet_components:
@@ -199,6 +204,9 @@ class S_gangster(core.System):
             # calculate the angle to target
             angle = math.atan((comp_gangster.target[1] - tran_comp.y) / (comp_gangster.target[0] - tran_comp.x))
             comp_bullet.dir = angle + (0 if comp_gangster.target[0] > tran_comp.x else math.pi)
+            comp_gangster.reload_ticks = 20
+            comp_gangster.state = comp.C_gangster.OBSERVING
+            comp_ai.disable = 10
 
     def on_collision_event(self, event: evt.Collision_event):
         # TODO: fix this, maybe by creating a lambda? or sort the types
