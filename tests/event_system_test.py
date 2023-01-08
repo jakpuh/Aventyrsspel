@@ -11,7 +11,7 @@ class Collision_event(core.Event):
 def on_collision(event):
     print(event)
 
-event_system = core.Event_system()
+event_system = core.Event_handler()
 event_system.subscribe_event(Collision_event("entity1", "entity3"), on_collision)
 event_system.dispatch_event(Collision_event("entity1", "entity2"))
 event_system.dispatch_event(Collision_event("entity1", "entity3"))

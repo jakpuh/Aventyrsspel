@@ -171,7 +171,7 @@ class Apple_handler():
                 new_entity.add_component(C_apple())
 
 core.Screen_wrapper().init()
-event_system = core.Event_system()
+event_system = core.Event_handler()
 
 ecs = core.World()
 render_system = ecs.add_system(S_render())

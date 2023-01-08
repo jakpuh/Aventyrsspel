@@ -1,5 +1,5 @@
 import curses
-import event_system as es
+import event_handler as es
 import singleton
 from numbers import Number
 from typing import Tuple
@@ -91,7 +91,7 @@ class Screen(Window):
         self.stdscr = None
         super().__init__(self.stdscr)
 
-    def poll_events(self, event_handler: es.Event_system):
+    def poll_events(self, event_handler: es.Event_handler):
         keypress = self.window.getch()
         if keypress == curses.KEY_RESIZE:
             [height, width] = self.get_dimension()

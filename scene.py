@@ -7,6 +7,7 @@ import systems as sys
 import events as evt
 from object_storage import Object_storage
 import math
+import utils
 
 class Scene():
     def clone_entity(self, object_class: str, object_name: str):
@@ -76,6 +77,20 @@ class Scene():
     # cleans the rooms before a switch
     def cleanup(self):
         self.event_handler.dispatch_event(evt.Cleanup_event())
+
+def tmp(event) -> bool:
+    entity1_range = event.entity1.query_components([comp.C_range, comp.C_child_of]) 
+    entity2_range = event.entity2.query_components([comp.C_range, comp.C_child_of])
+    entity1_player = event.entity1.query_components([comp.C_player, comp.C_transform])
+    entity2_player = event.entity2.query_components([comp.C_player, comp.C_transform])
+    if len(entity1_range) == 2 and len(entity2_player) == 2:
+        tmp = event.entity2
+        event.entity2 = event.entity1
+        event.entity1 = tmp
+        return True
+    elif len(entity1_player) == 2 and len(entity2_range) == 2:
+        return True
+    return False
 
 class Challenge_scene(Scene):
     def __init__(self, wall_dirs, screen, left_sidebar, right_sidebar):
@@ -162,12 +177,12 @@ class Challenge_scene(Scene):
         self.event_handler.subscribe_event(evt.Tick_event, gangster_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, ai_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Log_event, log_system.on_log_event)
-        self.event_handler.subscribe_event(evt.Collision_event, ghost_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event, gangster_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event, impenetrable_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event, exit_handler.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event, thorn_handler.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event, bullet_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event, ghost_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
+        self.event_handler.subscribe_event(evt.Collision_event, gangster_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
+        self.event_handler.subscribe_event(evt.Collision_event, impenetrable_system.on_collision_event, utils.collision_event_pred_generator([comp.C_impenetrable], [comp.C_transform]))
+        self.event_handler.subscribe_event(evt.Collision_event, exit_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_exit], [comp.C_player]))
+        self.event_handler.subscribe_event(evt.Collision_event, thorn_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_thorn], [comp.C_health]))
+        self.event_handler.subscribe_event(evt.Collision_event, bullet_system.on_collision_event, utils.collision_event_pred_generator([comp.C_bullet], [comp.C_impenetrable]))
         self.event_handler.subscribe_event(evt.Delay_event, delay_handler.on_delay_event)
         self.event_handler.subscribe_event(evt.Cleanup_event, blink_system.on_cleanup_event)
         self.event_handler.subscribe_event(evt.Cleanup_event, delay_handler.on_cleanup_event)

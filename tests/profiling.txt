@@ -93,7 +93,7 @@ Ordered by: standard name
         1    0.000    0.000    0.000    0.000 event_system.py:1(<module>)
         1    0.000    0.000    0.000    0.000 event_system.py:1(Event)
         2    0.000    0.000    0.000    0.000 event_system.py:22(subscribe_event)
-        1    0.000    0.000    0.000    0.000 event_system.py:5(Event_system)
+        1    0.000    0.000    0.000    0.000 event_system.py:5(Event_handler)
        12    0.000    0.000    0.000    0.000 event_system.py:8(dispatch_event)
         1    0.000    0.000    0.000    0.000 os.py:675(__getitem__)
         1    0.000    0.000    0.000    0.000 os.py:755(encode)
