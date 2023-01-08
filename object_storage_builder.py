@@ -36,6 +36,26 @@ def fill_object_storage():
         comp.C_thorn(1)\
     ])
 
+    Object_storage().add("Monster", "Monkey", [\
+        comp.C_monkey(),\
+        comp.C_ai(0.02, ((0.4, 0.4), (0.6, 0.6))),\
+        comp.C_transform(None, None),\
+        comp.C_sprite([
+            "     ,\"^\".     ",
+            "    / _=_ \    ",
+            "   (,(ovo),)   ",
+            " .-.\(-\"-)/.-. ",
+            "{    \___/    }",
+            "{   } .  . {  }",
+            "{   --| |--   }",
+            " \____| |____/ ",
+            "      | |      "
+        ]),\
+        comp.C_hitbox(15, 9),\
+        comp.C_health(20),\
+        comp.C_thorn(1)\
+    ])
+
     Object_storage().add("Projectile", "Bullet",[\
         comp.C_bullet(None, 0.3),\
         comp.C_transform(None, None),\

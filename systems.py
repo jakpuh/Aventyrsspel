@@ -170,6 +170,7 @@ class S_gangster(core.System):
             self.event_handler.dispatch_event(evt.Log_event("Reload ticks", comp_gang.reload_ticks))
 
     def on_tick_event(self, event):
+        # TODO: make the gangster run away when player is to close
         #TODO: Maybe create a box with a hitbox
         #      when player in box -> event will get called
         for entity in self.registered_entities:
@@ -230,6 +231,19 @@ class S_gangster(core.System):
             comp_gangster[0].state = comp_gangster[0].SHOOTING
             comp_gangster[1].disable = float("INF")
 
+class S_monkey(core.System):
+    component_mask = [comp.C_monkey, comp.C_transform]
+
+    def __init__(self, event_handler: core.Event_system):
+        super().__init__()
+        self.event_handler = event_handler
+
+    def run():
+        # face 1: shoot burst of bullets
+        # face 2: throw bombs
+        # face 3: tail player
+        pass
+
 class S_bullet(core.System):
     component_mask = [comp.C_bullet, comp.C_transform]
 
@@ -280,8 +294,10 @@ class S_ai(core.System):
             if comp_ai.target != None:
                 self.event_handler.dispatch_event(evt.Log_event("Ai_target: ", f"{comp_ai.target[0]:.2f}, {comp_ai.target[1]:.2f}"))
             if comp_ai.target == None or (abs(comp_ai.target[0] - comp_tran.x) < comp_ai.speed * dt and (comp_ai.target[1] - comp_tran.y) < comp_ai.speed * dt):
-                new_x = rand.uniform(0.2, 0.8)
-                new_y = rand.uniform(0.2, 0.8)
+                # new_x = rand.uniform(0.2, 0.8)
+                # new_y = rand.uniform(0.2, 0.8)
+                new_x = rand.uniform(comp_ai.area[0][0], comp_ai.area[1][0])
+                new_y = rand.uniform(comp_ai.area[0][1], comp_ai.area[1][1])
                 comp_ai.target = (new_x, new_y)
             comp_tran.x += (1 if comp_ai.target[0] > comp_tran.x else -1) * comp_ai.speed * dt
             comp_tran.y += (1 if comp_ai.target[1] > comp_tran.y else -1) * comp_ai.speed * dt

@@ -80,7 +80,7 @@ class Scene():
 class Challenge_scene(Scene):
     def __init__(self, wall_dirs, screen, left_sidebar, right_sidebar):
         self.world = core.World()
-        self.event_handler = core.Event_system()
+        self.event_handler = core.Event_handler()
         self.exit_lst = []
         self.screen = screen
         self.left_sidebar = left_sidebar
@@ -124,12 +124,19 @@ class Challenge_scene(Scene):
         comp_tran.last_x = 0.25
         comp_tran.last_y = 0.75
 
-        wall_entity = self.clone_entity("Wall", "Default")
-        [comp_tran] = wall_entity.query_components([comp.C_transform])
+        # wall_entity = self.clone_entity("Wall", "Default")
+        # [comp_tran] = wall_entity.query_components([comp.C_transform])
+        # comp_tran.x = 0.2
+        # comp_tran.y = 0.2
+        # comp_tran.last_y = 0.2
+        # comp_tran.last_x = 0.2
+
+        monkey_entity = self.clone_entity("Monster", "Monkey")
+        [comp_tran] = monkey_entity.query_components([comp.C_transform])
         comp_tran.x = 0.2
         comp_tran.y = 0.2
-        comp_tran.last_y = 0.2
         comp_tran.last_x = 0.2
+        comp_tran.last_y = 0.2
 
         bullet_entity = self.clone_entity("Projectile", "Bullet")
         [comp_tran, comp_bullet] = bullet_entity.query_components([comp.C_transform, comp.C_bullet])
@@ -147,24 +154,24 @@ class Challenge_scene(Scene):
         for dir in no_wall_dirs:
             self.build_border(dir, False)
 
-        self.event_handler.subscribe_event(core.Key_event(None), player_system.on_key_event)
-        self.event_handler.subscribe_event(core.Key_event(None), keypress_debug_handler.on_key_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), ghost_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), delay_handler.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), blink_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), gangster_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event(), ai_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Log_event(None, None), log_system.on_log_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), ghost_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), gangster_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), impenetrable_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), exit_handler.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), thorn_handler.on_collision_event)
-        self.event_handler.subscribe_event(evt.Collision_event(None, None), bullet_system.on_collision_event)
-        self.event_handler.subscribe_event(evt.Delay_event(None, None), delay_handler.on_delay_event)
-        self.event_handler.subscribe_event(evt.Cleanup_event(), blink_system.on_cleanup_event)
-        self.event_handler.subscribe_event(evt.Cleanup_event(), delay_handler.on_cleanup_event)
-        self.event_handler.subscribe_event(evt.Cleanup_event(), bullet_system.on_cleanup_event)
+        self.event_handler.subscribe_event(core.Key_event, player_system.on_key_event)
+        self.event_handler.subscribe_event(core.Key_event, keypress_debug_handler.on_key_event)
+        self.event_handler.subscribe_event(evt.Tick_event, ghost_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, delay_handler.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, blink_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, gangster_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, ai_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Log_event, log_system.on_log_event)
+        self.event_handler.subscribe_event(evt.Collision_event, ghost_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event, gangster_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event, impenetrable_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event, exit_handler.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event, thorn_handler.on_collision_event)
+        self.event_handler.subscribe_event(evt.Collision_event, bullet_system.on_collision_event)
+        self.event_handler.subscribe_event(evt.Delay_event, delay_handler.on_delay_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event, blink_system.on_cleanup_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event, delay_handler.on_cleanup_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event, bullet_system.on_cleanup_event)
 
 class Puzzle_scene(Scene):
     pass

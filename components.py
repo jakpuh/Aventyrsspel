@@ -32,10 +32,20 @@ class C_gangster(core.Component):
         self.disable = 0
 
 class C_ai(core.Component):
-    def __init__(self, speed = 0.01):
+    def __init__(self, speed, area = ((0.2, 0.2), (0.8, 0.8))):
         self.speed = speed
+        self.area = area
         self.target = None
         self.disable = 0    # How many ticks this component should be disabled
+
+class C_monkey(core.Component):
+    PHASE_1 = 0
+    PHASE_2 = 1
+    PHASE_3 = 2
+    IDLE = 3
+
+    def __init__(self):
+        self.state = C_monkey.PHASE_1
 
 class C_bullet(core.Component):
     def __init__(self, dir, speed):    # dir is a angle in radians
