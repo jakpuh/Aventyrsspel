@@ -69,6 +69,7 @@ class Challenge_scene(Scene):
         blink_system = self.world.add_system(sys.S_blink())
         ai_system = self.world.add_system(sys.S_ai(self.event_handler))
         gangster_system = self.world.add_system(sys.S_gangster(self.event_handler, self))
+        monkey_system = self.world.add_system(sys.S_monkey(self.event_handler))
         bullet_system = self.world.add_system(sys.S_bullet(self.event_handler))
         range_system = self.world.add_system(sys.S_range(self.event_handler))
         # ======== DEBUG =========
@@ -105,6 +106,7 @@ class Challenge_scene(Scene):
         self.event_handler.subscribe_event(evt.Log_event, log_system.on_log_event)
         self.event_handler.subscribe_event(evt.Collision_event, ghost_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, gangster_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
+        self.event_handler.subscribe_event(evt.Collision_event, monkey_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, impenetrable_system.on_collision_event, utils.collision_event_pred_generator([comp.C_impenetrable], [comp.C_transform]))
         self.event_handler.subscribe_event(evt.Collision_event, exit_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_exit], [comp.C_player]))
         self.event_handler.subscribe_event(evt.Collision_event, thorn_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_thorn], [comp.C_health]))

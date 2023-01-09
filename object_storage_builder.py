@@ -6,6 +6,9 @@ import core
 import components as comp
 from typing import Callable
 
+# DEBUG
+debug = True
+
 def constructor(delegated_constructor: Callable):
     def _(world, components, arguments):
         entity = world.create_entity()
@@ -40,6 +43,9 @@ def range_constructor(world, entity, arguments):
     comp_range.offset = (-arguments[1][0] / 2, -arguments[1][1] / 2)
     
     # DEBUG
+    if not debug:
+        entity.remove_component(comp.C_rectangle)
+        return
     [comp_rect] = entity.query_components([comp.C_rectangle])
     comp_rect.width = arguments[1][0]
     comp_rect.height = arguments[1][1]
@@ -53,6 +59,14 @@ def ghost_constructor(world, entity: core.World.Entity_wrapper, arguments):
 def gangster_constructor(world, entity: core.World.Entity_wrapper, arguments):
     transform_constructor(world, entity, arguments)
     Object_storage().clone(world, "Misc", "Range", [entity, (0.75, 0.75)])
+
+# 0: (pos_x, pos_y)
+def monkey_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    global debug
+    debug = False
+    transform_constructor(world, entity, arguments)
+    Object_storage().clone(world, "Misc", "Range", [entity, (2, 2)])
+    debug = True
 
 # 0: dir
 # 1: (pos_x, pos_y)
@@ -135,7 +149,7 @@ def fill_object_storage():
         comp.C_hitbox(15, 9),\
         comp.C_health(20),\
         comp.C_thorn(1)\
-    ],constructor(transform_constructor))
+    ],constructor(monkey_constructor))
 
     Object_storage().add("Projectile", "Bullet",[\
         comp.C_bullet(None, 0.3),\

@@ -16,13 +16,6 @@ class Object_storage(metaclass=core.Singleton):
             raise Exception("Object already in system")
         self.objects[obj_class][obj_name] = (copy.deepcopy(components), constructor)
     
-    def get(self, obj_class: str, obj_name: str) -> list[core.Component]:
-        if not obj_class in self.objects:
-            raise Exception("Object class not found")
-        if not obj_name in self.objects[obj_class]:
-            raise Exception("Object not found in class")
-        return copy.deepcopy(self.objects[obj_class][obj_name][0])
-
     def clone(self, world, obj_class: str, obj_name: str, arguments: list = None) -> list[core.Component]:
         if not obj_class in self.objects:
             raise Exception("Object class not found")

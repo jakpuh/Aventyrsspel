@@ -160,14 +160,12 @@ class S_gangster(core.System):
             comp_ai.disable = 10
 
     def on_collision_event(self, event: evt.Collision_event):
-        # TODO: fix this, maybe by creating a lambda? or sort the types
-        entity1_player = event.entity1.query_components([comp.C_player, comp.C_transform])
-        entity2_range = event.entity2.query_components([comp.C_range, comp.C_child_of])
-        comp_gangster = entity2_range[1].parent.query_components([comp.C_gangster, comp.C_ai])
-        # TODO: fix
+        [entity1_tran] = event.entity1.query_components([comp.C_transform])
+        [entity2_child] = event.entity2.query_components([comp.C_child_of])
+        comp_gangster = entity2_child.parent.query_components([comp.C_gangster, comp.C_ai])
         if len(comp_gangster) != 2:
             return
-        comp_gangster[0].target = [entity1_player[1].x, entity1_player[1].y]
+        comp_gangster[0].target = [entity1_tran.x, entity1_tran.y]
         comp_gangster[0].state = comp_gangster[0].SHOOTING
         comp_gangster[1].disable = float("INF")
 
@@ -178,12 +176,22 @@ class S_monkey(core.System):
         super().__init__()
         self.event_handler = event_handler
 
-    def run():
+    def run(self, dt):
         # face 1: shoot burst of bullets
 
         # face 2: throw bombs
         # face 3: tail player
         pass
+
+    def on_collision_event(self, event: evt.Collision_event):
+        [entity1_tran] = event.entity1.query_components([comp.C_transform])
+        [entity2_child] = event.entity2.query_components([comp.C_child_of])
+        comp_monkey = entity2_child.parent.query_components([comp.C_monkey, comp.C_ai])
+        if len(comp_monkey) != 2:
+            return
+        comp_monkey[0].target = [entity1_tran.x, entity1_tran.y]
+        comp_monkey[0].state = comp.C_monkey.IDLE
+
 
 # TODO: create system which destroys the entity and use event to call it, instead of directly call destroy_entity. This because we need to also destroy all the children
 
