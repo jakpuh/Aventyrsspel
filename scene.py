@@ -10,51 +10,22 @@ import math
 import utils
 
 class Scene():
-    def clone_entity(self, object_class: str, object_name: str):
-        entity = self.world.create_entity()
-        entity_components = Object_storage().get(object_class, object_name)
-        for component in entity_components:
-            entity.add_component(component)
-        return entity
-
-    def build_exit(self, x, y, width, height, name):
-        exit_entity = self.world.create_entity()
-        exit_entity.add_component(comp.C_transform(x, y))
-        # Use a inf hitbox instead, which will be over an infinite area (e.i x < 10 and y < 20), you online define one point/one side
-        exit_entity.add_component(comp.C_hitbox(width, height, True))
-        exit_entity.add_component(comp.C_exit(name))
-        # exit_entity.add_component(comp.C_impenetrable())
-        return exit_entity
-
-    def build_wall_without_door(self, x, y, width, height):
-        wall = self.clone_entity("Wall", "Dynamic")
-        [comp_tran, comp_box, comp_rect] = wall.query_components([comp.C_transform, comp.C_hitbox, comp.C_rectangle])
-        comp_box.h = height
-        comp_box.w = width 
-        comp_rect.height = height
-        comp_rect.width = width
-        comp_tran.x = x
-        comp_tran.y = y
-        comp_tran.last_x = x
-        comp_tran.last_y = y
-        return wall
-
     def build_wall_with_door(self, x, y, width, height, name_of_exit):
-        DOOR_WIDTH = 0.05
+        DOOR_WIDTH = 0.05   # Is actually half the width of the door because it reduces the complexity of the following expressions
         if width > height:
-            self.build_wall_without_door(x, y, width / 2 - DOOR_WIDTH, height)
-            self.build_exit(x + width / 2 - DOOR_WIDTH, y, DOOR_WIDTH * 2, height, name_of_exit)
-            self.build_wall_without_door(x + width / 2 + DOOR_WIDTH, y, width / 2 - DOOR_WIDTH, height)
+            Object_storage().clone(self.world, "Wall", "Dynamic", [(x, y), (width / 2 - DOOR_WIDTH, height)])
+            Object_storage().clone(self.world, "Misc", "Exit", [name_of_exit, (x + width / 2 - DOOR_WIDTH, y), (DOOR_WIDTH * 2, height)])
+            Object_storage().clone(self.world, "Wall", "Dynamic", [(x + width / 2 + DOOR_WIDTH, y), (width / 2 - DOOR_WIDTH, height)])
         else:
-            self.build_wall_without_door(x, y, width, height / 2 - DOOR_WIDTH)
-            self.build_exit(x, y + height / 2 - DOOR_WIDTH, width, DOOR_WIDTH * 2, name_of_exit)
-            self.build_wall_without_door(x, y + height / 2 + DOOR_WIDTH, width, height / 2 - DOOR_WIDTH)
+            Object_storage().clone(self.world, "Wall", "Dynamic", [(x, y), (width, height / 2 - DOOR_WIDTH)])
+            Object_storage().clone(self.world, "Misc", "Exit", [name_of_exit, (x, y + height / 2 - DOOR_WIDTH), (width, DOOR_WIDTH * 2)])
+            Object_storage().clone(self.world, "Wall", "Dynamic", [(x, y + height / 2 + DOOR_WIDTH), (width, height / 2 - DOOR_WIDTH)])
 
     def build_wall(self, x, y, width, height, has_door, name_of_exit):
         if has_door:
             self.build_wall_with_door(x, y, width, height, name_of_exit)
             return
-        self.build_wall_without_door(x, y, width, height)
+        Object_storage().clone(self.world, "Wall", "Dynamic", [(x, y), (width, height)])
 
     def build_border(self, dir, has_door):
         WIDTH = 0.05
@@ -78,20 +49,6 @@ class Scene():
     def cleanup(self):
         self.event_handler.dispatch_event(evt.Cleanup_event())
 
-def tmp(event) -> bool:
-    entity1_range = event.entity1.query_components([comp.C_range, comp.C_child_of]) 
-    entity2_range = event.entity2.query_components([comp.C_range, comp.C_child_of])
-    entity1_player = event.entity1.query_components([comp.C_player, comp.C_transform])
-    entity2_player = event.entity2.query_components([comp.C_player, comp.C_transform])
-    if len(entity1_range) == 2 and len(entity2_player) == 2:
-        tmp = event.entity2
-        event.entity2 = event.entity1
-        event.entity1 = tmp
-        return True
-    elif len(entity1_player) == 2 and len(entity2_range) == 2:
-        return True
-    return False
-
 class Challenge_scene(Scene):
     def __init__(self, wall_dirs, screen, left_sidebar, right_sidebar):
         self.world = core.World()
@@ -113,6 +70,7 @@ class Challenge_scene(Scene):
         ai_system = self.world.add_system(sys.S_ai(self.event_handler))
         gangster_system = self.world.add_system(sys.S_gangster(self.event_handler, self))
         bullet_system = self.world.add_system(sys.S_bullet(self.event_handler))
+        range_system = self.world.add_system(sys.S_range(self.event_handler))
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
         player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
@@ -124,42 +82,11 @@ class Challenge_scene(Scene):
         thorn_handler = sys.H_thorn(self.event_handler)
         delay_handler = sys.H_delay()
 
-        ghost_entity = self.clone_entity("Monster", "Ghost")
-        [comp_tran] = ghost_entity.query_components([comp.C_transform])
-        comp_tran.x = 0.75
-        comp_tran.y = 0.75
-        comp_tran.last_x = 0.75
-        comp_tran.last_y = 0.75
-        # TODO: (maybe) let the user have a range rectangle, instead of every other entity needing to have one (assuming everyone the same range)
+        Object_storage().clone(self.world, "Monster", "Ghost", [(0.75, 0.75)])
+        Object_storage().clone(self.world, "Monster", "Gangster", [(0.25, 0.75)])
+        Object_storage().clone(self.world, "Monster", "Monkey", [(0.2, 0.2)])
 
-        gangster_entity = self.clone_entity("Monster", "Gangster")
-        [comp_tran] = gangster_entity.query_components([comp.C_transform])
-        comp_tran.x = 0.25
-        comp_tran.y = 0.75
-        comp_tran.last_x = 0.25
-        comp_tran.last_y = 0.75
-
-        # wall_entity = self.clone_entity("Wall", "Default")
-        # [comp_tran] = wall_entity.query_components([comp.C_transform])
-        # comp_tran.x = 0.2
-        # comp_tran.y = 0.2
-        # comp_tran.last_y = 0.2
-        # comp_tran.last_x = 0.2
-
-        monkey_entity = self.clone_entity("Monster", "Monkey")
-        [comp_tran] = monkey_entity.query_components([comp.C_transform])
-        comp_tran.x = 0.2
-        comp_tran.y = 0.2
-        comp_tran.last_x = 0.2
-        comp_tran.last_y = 0.2
-
-        bullet_entity = self.clone_entity("Projectile", "Bullet")
-        [comp_tran, comp_bullet] = bullet_entity.query_components([comp.C_transform, comp.C_bullet])
-        comp_tran.x = 0.75
-        comp_tran.y = 0.25
-        comp_tran.last_y = 0.25
-        comp_tran.last_x = 0.75
-        comp_bullet.dir = 0.1
+        Object_storage().clone(self.world, "Projectile", "Bullet", [0.1, (0.75, 0.25)])
 
         all_dirs = ['U', 'D', 'L', 'R']
         no_wall_dirs = list(set(wall_dirs)^set(all_dirs))
@@ -171,7 +98,6 @@ class Challenge_scene(Scene):
 
         self.event_handler.subscribe_event(core.Key_event, player_system.on_key_event)
         self.event_handler.subscribe_event(core.Key_event, keypress_debug_handler.on_key_event)
-        self.event_handler.subscribe_event(evt.Tick_event, ghost_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, delay_handler.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, blink_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, gangster_system.on_tick_event)

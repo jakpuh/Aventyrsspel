@@ -31,15 +31,7 @@ def main():
     # rooms = generator.generate(main_window, right_sidebar)
 
     current_room = 0
-    player1 = rooms[current_room].scene.world.create_entity()
-    player1_components = Object_storage().get("Player", "Default")
-    for component in player1_components:
-        player1.add_component(component)
-    [tran_comp] = player1.query_components([comp.C_transform])
-    tran_comp.x = 0.5
-    tran_comp.y = 0.5
-    tran_comp.last_x = 0.5
-    tran_comp.last_y = 0.5
+    Object_storage().clone(rooms[current_room].scene.world, "Player", "Default", [(0.5, 0.5)])
 
     POS = {
         'U': (0.8, None),

@@ -102,7 +102,8 @@ class C_child_of(core.Component):
         self.parent = parent
 
 class C_range(core.Component):
-    pass
+    def __init__(self, offset):
+        self.offset = offset
 
 class C_exit(core.Component):
     def __init__(self, name):

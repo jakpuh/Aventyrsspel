@@ -115,23 +115,6 @@ class S_ghost(core.System):
             comp_tran.y += (1 if comp_ghost.target[1] > comp_tran.y else -1) * comp_ghost.speed * dt
             # comp_tran.y += comp_ghost.target[1] * comp_ghost.speed * dt
 
-    def on_tick_event(self, event):
-        #TODO: Maybe create a box with a hitbox
-        #      when player in box -> event will get called
-        for entity in self.registered_entities:
-            [tran_comp] = entity.query_components([comp.C_transform])
-
-            # TODO: make the entity follow the ghost instead of having a lifetime
-            range_entity = self.world.create_entity()
-            range_entity.add_component(comp.C_child_of(entity)) 
-            range_entity.add_component(comp.C_lifetime(3)) 
-            range_entity.add_component(comp.C_hitbox(0.3, 0.3, True)) 
-            range_entity.add_component(comp.C_transform(tran_comp.x - 0.15, tran_comp.y - 0.15)) 
-            #range_entity.add_component(comp.C_transform(0, 0)) 
-            range_entity.add_component(comp.C_range())
-            range_entity.add_component(comp.C_rectangle(0.3, 0.3))
-            # range_entity.add_component(comp.C_sprite("#"))
-
     # TODO: maybe remove _event suffix. The on_ prefix should be enough to specify it to be an even handling function 
     def on_collision_event(self, event):
         entity1_player = event.entity1.query_components([comp.C_player, comp.C_transform])
@@ -159,40 +142,19 @@ class S_gangster(core.System):
 
     def on_tick_event(self, event):
         # TODO: make the gangster run away when player is to close
-        #TODO: Maybe create a box with a hitbox
-        #      when player in box -> event will get called
         for entity in self.registered_entities:
             [tran_comp] = entity.query_components([comp.C_transform])
-
-            # TODO: make the entity follow the ghost instead of having a lifetime
-            range_entity = self.world.create_entity()
-            range_entity.add_component(comp.C_child_of(entity)) 
-            range_entity.add_component(comp.C_lifetime(3)) 
-            range_entity.add_component(comp.C_hitbox(0.75, 0.75, True)) 
-            range_entity.add_component(comp.C_transform(tran_comp.x - 0.75 / 2, tran_comp.y - 0.75 / 2)) 
-            #range_entity.add_component(comp.C_transform(0, 0)) 
-            range_entity.add_component(comp.C_range())
-            range_entity.add_component(comp.C_rectangle(0.75, 0.75))
-            # range_entity.add_component(comp.C_sprite("#"))
-
             [comp_ai, comp_gangster] = entity.query_components([comp.C_ai, comp.C_gangster])
             if comp_gangster.state != comp.C_gangster.SHOOTING:
                 continue
             if comp_gangster.reload_ticks > 0:
                 comp_gangster.reload_ticks -= 1
                 continue
-            bullet_entity = self.world.create_entity()
-            bullet_components = Object_storage().get("Projectile", "Bullet")
-            for component in bullet_components:
-                bullet_entity.add_component(component)
-            [bullet_tran_comp, comp_bullet] = bullet_entity.query_components([comp.C_transform, comp.C_bullet])
-            bullet_tran_comp.x = tran_comp.x
-            bullet_tran_comp.y = tran_comp.y
-            bullet_tran_comp.last_x = tran_comp.x
-            bullet_tran_comp.last_y = tran_comp.y
-            # calculate the angle to target
+
             angle = math.atan((comp_gangster.target[1] - tran_comp.y) / (comp_gangster.target[0] - tran_comp.x))
-            comp_bullet.dir = angle + (0 if comp_gangster.target[0] > tran_comp.x else math.pi)
+            dir = angle + (0 if comp_gangster.target[0] > tran_comp.x else math.pi)
+            Object_storage().clone(self.world, "Projectile", "Bullet", [dir, (tran_comp.x, tran_comp.y)])
+
             comp_gangster.reload_ticks = 20
             comp_gangster.state = comp.C_gangster.OBSERVING
             comp_ai.disable = 10
@@ -218,9 +180,28 @@ class S_monkey(core.System):
 
     def run():
         # face 1: shoot burst of bullets
+
         # face 2: throw bombs
         # face 3: tail player
         pass
+
+# TODO: create system which destroys the entity and use event to call it, instead of directly call destroy_entity. This because we need to also destroy all the children
+
+class S_range(core.System):
+    component_mask = [comp.C_range, comp.C_transform, comp.C_child_of]
+
+    def __init__(self, event_handler: core.Event_handler):
+        super().__init__()
+        self.event_handler = event_handler
+
+    def run(self, dt):
+        for entity in self.registered_entities:
+            [comp_tran, comp_child, comp_range] = entity.query_components([comp.C_transform, comp.C_child_of, comp.C_range])
+            [comp_parent] = comp_child.parent.query_components([comp.C_transform])
+            comp_tran.last_x = comp_tran.x
+            comp_tran.last_y = comp_tran.y
+            comp_tran.x = comp_parent.x + comp_range.offset[0]
+            comp_tran.y = comp_parent.y + comp_range.offset[1]
 
 class S_bullet(core.System):
     component_mask = [comp.C_bullet, comp.C_transform]
@@ -308,11 +289,11 @@ class S_collision(core.System):
             for j,entity2 in enumerate(self.registered_entities):
                 if j <= i:
                     continue
-                # 🤫
+                # 🤫 TODO: fix, the event might destroy the entity which means stuff breaks. The for loop might also become invalid / skip entities
                 try:
                     [hit_comp1, tran_comp1] = entity1.query_components([comp.C_hitbox, comp.C_transform])
                     [hit_comp2, tran_comp2] = entity2.query_components([comp.C_hitbox, comp.C_transform])
-                except: 
+                except:
                     continue
                 # rel_hit_comp1 = self.screen.abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
                 # rel_hit_comp2 = self.screen.abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
