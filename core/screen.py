@@ -31,7 +31,7 @@ class Window():
             self.draw_row(texture_row, abs_x, abs_y)
             abs_y += 1
     
-    def get_dimension(self: list[int, int]):
+    def get_dimension(self) -> list[int, int]:
         return self.window.getmaxyx()
 
     def rel_to_abs(self, x: Number, y: Number) -> Tuple[int, int]:

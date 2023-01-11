@@ -13,14 +13,8 @@ class Dungeon_generator():
         for node in adj_layout:
             room = Room()
             for neighbour in node:
-                if neighbour[1] == 'R':
-                    room.neighbours['R'] = neighbour[0]
-                elif neighbour[1] == 'L':
-                    room.neighbours['L'] = neighbour[0]
-                elif neighbour[1] == 'U':
-                    room.neighbours['U'] = neighbour[0]
-                elif neighbour[1] == 'D':
-                    room.neighbours['D'] = neighbour[0]
+                if neighbour[1] in 'RLUD':
+                    room.neighbours[neighbour[1]] = neighbour[0]
                 else:
                     raise Exception("Invalid neighbour direction")
             room.scene = Challenge_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar)

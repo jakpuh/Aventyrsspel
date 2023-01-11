@@ -44,8 +44,20 @@ class C_monkey(core.Component):
     PHASE_3 = 2
     IDLE = 3
 
+    class Phase_1():
+        def __init__(self, reload_time):
+            self.reload_time = reload_time
+    
+    class Phase_2():
+        pass
+
+    class Phase_3():
+        pass
+
     def __init__(self):
-        self.state = C_monkey.PHASE_1
+        self.state = C_monkey.IDLE
+        self.target = None
+        self.phase_state = None
 
 class C_bullet(core.Component):
     def __init__(self, dir, speed):    # dir is a angle in radians
@@ -55,6 +67,11 @@ class C_bullet(core.Component):
 class C_thorn():
     def __init__(self, damage):
         self.damage = damage
+
+class C_bomb(core.Component):
+    def __init__(self, radius, det_time):
+        self.radius = radius
+        self.det_time = det_time
 
 class C_impenetrable():
     pass

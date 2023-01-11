@@ -172,16 +172,39 @@ class S_gangster(core.System):
 class S_monkey(core.System):
     component_mask = [comp.C_monkey, comp.C_transform]
 
-    def __init__(self, event_handler: core.Event_handler):
+    def __init__(self, event_handler: core.Event_handler, world):
         super().__init__()
         self.event_handler = event_handler
+        self.world = world
 
     def run(self, dt):
-        # face 1: shoot burst of bullets
-
-        # face 2: throw bombs
-        # face 3: tail player
         pass
+
+    def on_tick_event(self, event: evt.Tick_event):
+        for entity in self.registered_entities:
+            [comp_monk, comp_tran] = entity.query_components([comp.C_monkey, comp.C_transform]) 
+            match comp_monk.state:
+                # Do nothing; happens when a player hasn't been detected yet and between phases
+                case comp.C_monkey.IDLE:
+                    continue
+                # phase 1: shoot burst of bullets
+                case comp.C_monkey.PHASE_1:
+                    if comp_monk.phase_state.reload_time > 0:
+                        comp_monk.phase_state.reload_time -= 1
+                        continue
+                    angle = math.atan((comp_monk.target[1] - comp_tran.y) / (comp_monk.target[0] - comp_tran.x))
+                    dir = angle + (0 if comp_monk.target[0] > comp_tran.x else math.pi)
+                    Object_storage().clone(self.world, "Projectile", "Bullet", [dir, (comp_tran.x, comp_tran.y)])
+                    comp_monk.phase_state.reload_time = 500
+                case comp.C_monkey.PHASE_2:
+                    pass
+                case comp.C_monkey.PHASE_3:
+                    pass
+
+        # phase 2: throw bombs
+        # phase 3: tail player
+
+
 
     def on_collision_event(self, event: evt.Collision_event):
         [entity1_tran] = event.entity1.query_components([comp.C_transform])
@@ -191,6 +214,7 @@ class S_monkey(core.System):
             return
         comp_monkey[0].target = [entity1_tran.x, entity1_tran.y]
         comp_monkey[0].state = comp.C_monkey.IDLE
+        # comp_monkey[0].phase_state = comp.C_monkey.Phase_1(0)
 
 
 # TODO: create system which destroys the entity and use event to call it, instead of directly call destroy_entity. This because we need to also destroy all the children
@@ -231,10 +255,7 @@ class S_bullet(core.System):
 
     def on_collision_event(self, event: evt.Collision_event):
         # Assumes only ONE entity is a bullet
-        comp_bull = event.entity1.query_components([comp.C_bullet]) 
-        comp_imp = event.entity2.query_components([comp.C_impenetrable]) 
-        if len(comp_imp) != 0 and len(comp_bull) != 0:
-            event.entity1.destroy_entity()
+        event.entity1.destroy_entity()
 
     def on_cleanup_event(self, event: evt.Cleanup_event):
         count = 0
@@ -242,6 +263,21 @@ class S_bullet(core.System):
             self.registered_entities[0].destroy_entity()    # modifies the registered entities list which means we do not need to manually remove element from the list
             count += 1
         self.event_handler.dispatch_event(evt.Log_event("CLEANED", count))
+
+# Destroys entities who are out of range
+class S_void(core.System):
+    component_mask = [comp.C_transform, comp.C_sprite]
+
+    def __init__(self, event_handler: core.Event_handler, screen: core.Window):
+        super().__init__()
+        self.event_handler = event_handler 
+        self.screen = screen
+
+    def run(self, dt):
+        for entity in self.registered_entities:
+            [comp_tran] = entity.query_components([comp.C_transform])
+            if comp_tran.x < 0 or comp_tran.x >= 1 or comp_tran.y < 0 or comp_tran.y >= 1:
+                entity.destroy_entity()
 
 class S_ai(core.System):
     component_mask = [comp.C_ai, comp.C_transform]
