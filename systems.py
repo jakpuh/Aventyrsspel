@@ -190,6 +190,23 @@ class S_boomer(core.System):
             comp_boom.reload_ticks -= 1
 
 
+class S_fox(core.System):
+    component_mask = [comp.C_fox, comp.C_transform]
+
+    def __init__(self, event_handler: core.Event_handler, world):
+        super(),__init__()
+        self.event_handler = event_handler
+        self.world = world
+    
+    def run(self, dt):
+        pass
+
+    def on_tick_event(self, event: evt.Tick_event):
+        for entity in self.registered_entities:
+            [comp_fox, comp_tran] = entity.query_components([comp.C_fox, comp.C_transform])
+            
+
+
 class S_monkey(core.System):
     component_mask = [comp.C_monkey, comp.C_transform]
 

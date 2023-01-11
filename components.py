@@ -37,6 +37,11 @@ class C_boomer(core.Component):
         self.fire_rate = fire_rate
         self.reload_ticks = fire_rate
 
+class C_fox(core.Component):
+    def __init__(self, d_cd, d_range):
+        self.d_cd = d_cd
+        self.d_range = d_range
+
 class C_ai(core.Component):
     def __init__(self, speed, area = ((0.2, 0.2), (0.8, 0.8))):
         self.speed = speed
