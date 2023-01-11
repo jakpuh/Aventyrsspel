@@ -225,12 +225,15 @@ class S_bomb(core.System):
         self.event_handler = event_handler
         self.world = world
 
+    def run(self, dt):
+        pass
+
     def on_tick_event(self, event: evt.Tick_event):
         destroy_lst = []
         for entity in self.registered_entities:
             [comp_tran, comp_bomb] = entity.query_components([comp.C_transform, comp.C_bomb])
             if comp_bomb.det_time <= 0:
-                Object_storage().clone(self.world, "Misc", "Explosion", [(comp_tran.x - comp_bomb.radius, comp_tran.y - comp_bomb.radius)])
+                Object_storage().clone(self.world, "Misc", "Explosion", [(comp_tran.x - comp_bomb.radius, comp_tran.y - comp_bomb.radius), comp_bomb.radius])
                 destroy_lst.append(entity)
                 continue
             comp_bomb.det_time -= 1

@@ -108,6 +108,15 @@ def bomb_constructor(world, entity: core.World.Entity_wrapper, arguments):
     comp_bomb.det_time = arguments[2]
     comp_bomb.radius = arguments[1]
 
+# 0: (pos_x, pos_y)
+# 1: radius
+def explosion_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    transform_constructor(world, entity, [arguments[0]])
+    hitbox_constructor(world, entity, [(arguments[1] * 2, arguments[1] * 2)])
+    [comp_rect] = entity.query_components([comp.C_rectangle])
+    comp_rect.width = arguments[1] * 2
+    comp_rect.height = arguments[1] * 2
+
 # TODO: parse file with the information instead of hardcoding into code
 def fill_object_storage():
     Object_storage().add("Misc", "Range", [
@@ -176,10 +185,11 @@ def fill_object_storage():
 
     Object_storage().add("Misc", "Explosion", [\
         comp.C_transform(None, None),\
-        comp.C_rectangle(10, 10),\
+        comp.C_rectangle(None, None),\
+        comp.C_hitbox(None, None, True),\
         comp.C_thorn(1),\
         comp.C_lifetime(10)\
-        ],constructor(transform_constructor))
+        ],constructor(explosion_constructor))
 
     Object_storage().add("Projectile", "Bullet",[\
         comp.C_bullet(None, 0.3),\
