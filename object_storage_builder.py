@@ -93,6 +93,15 @@ def exit_constructor(world, entity: core.World.Entity_wrapper, arguments):
     [comp_exit] = entity.query_components([comp.C_exit])
     comp_exit.name = arguments[0]
 
+# 0: (pos_x, pos_y)
+# 1: radius
+# 2: det_time
+def bomb_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    transform_constructor(world, entity, [arguments[0]])
+    [comp_bomb] = entity.query_components([comp.C_bomb])
+    comp_bomb.det_time = arguments[2]
+    comp_bomb.radius = arguments[1]
+
 # TODO: parse file with the information instead of hardcoding into code
 def fill_object_storage():
     Object_storage().add("Misc", "Range", [
