@@ -75,6 +75,7 @@ class Challenge_scene(Scene):
         void_system = self.world.add_system(sys.S_void(self.event_handler, screen))
         bomb_system = self.world.add_system(sys.S_bomb(self.event_handler, self.world))
         boomer_system = self.world.add_system(sys.S_boomer(self.event_handler, self.world))
+        fox_system = self.world.add_system(sys.S_fox(self.event_handler))
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
         player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
@@ -90,6 +91,7 @@ class Challenge_scene(Scene):
         Object_storage().clone(self.world, "Monster", "Gangster", [(0.25, 0.75)])
         Object_storage().clone(self.world, "Monster", "Boomer", [(0.5, 0.2)])
         Object_storage().clone(self.world, "Monster", "Monkey", [(0.2, 0.2)])
+        Object_storage().clone(self.world, "Monster", "Fox", [(0.75, 0.2)])
 
         Object_storage().clone(self.world, "Projectile", "Bullet", [0.1, (0.75, 0.25)])
         Object_storage().clone(self.world, "Projectile", "Bomb", [(0.5, 0.5), 0.1, 20])
@@ -111,6 +113,7 @@ class Challenge_scene(Scene):
         self.event_handler.subscribe_event(evt.Tick_event, monkey_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, bomb_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, boomer_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, fox_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Log_event, log_system.on_log_event)
         self.event_handler.subscribe_event(evt.Collision_event, ghost_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, gangster_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
@@ -118,6 +121,7 @@ class Challenge_scene(Scene):
         self.event_handler.subscribe_event(evt.Collision_event, impenetrable_system.on_collision_event, utils.collision_event_pred_generator([comp.C_impenetrable], [comp.C_transform]))
         self.event_handler.subscribe_event(evt.Collision_event, exit_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_exit], [comp.C_player]))
         self.event_handler.subscribe_event(evt.Collision_event, thorn_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_thorn], [comp.C_health]))
+        self.event_handler.subscribe_event(evt.Collision_event, fox_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, bullet_system.on_collision_event, utils.collision_event_pred_generator([comp.C_bullet], [comp.C_impenetrable]))
         self.event_handler.subscribe_event(evt.Delay_event, delay_handler.on_delay_event)
         self.event_handler.subscribe_event(evt.Cleanup_event, blink_system.on_cleanup_event)

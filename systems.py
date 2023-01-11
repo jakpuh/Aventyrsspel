@@ -193,18 +193,57 @@ class S_boomer(core.System):
 class S_fox(core.System):
     component_mask = [comp.C_fox, comp.C_transform]
 
-    def __init__(self, event_handler: core.Event_handler, world):
-        super(),__init__()
+    def __init__(self, event_handler: core.Event_handler):
+        super().__init__()
         self.event_handler = event_handler
-        self.world = world
     
     def run(self, dt):
-        pass
+        for entity in self.registered_entities: 
+            [comp_tran, comp_fox, comp_ai] = entity.query_components([comp.C_transform, comp.C_fox, comp.C_ai])
+            if comp_fox.target == None or comp_fox.state != comp.C_fox.DASHING:
+                continue
+
+            if abs(comp_tran.x - comp_fox.target[0]) < comp_fox.speed * dt and abs(comp_tran.y - comp_fox.target[1]) < comp_fox.speed * dt:
+                comp_ai.disable = 5
+                comp_fox.state = comp.C_fox.IDLE
+                continue
+
+            angle = math.atan((comp_fox.target[1] - comp_tran.y) / (comp_fox.target[0] - comp_tran.x))
+            dir = angle + (0 if comp_fox.target[0] > comp_tran.x else math.pi)
+            hor_move = math.cos(dir) * dt * comp_fox.speed
+            ver_move = math.sin(dir) * dt * comp_fox.speed
+            comp_tran.last_x = comp_tran.x
+            comp_tran.last_y = comp_tran.y
+            comp_tran.x += hor_move
+            comp_tran.y += ver_move
+
 
     def on_tick_event(self, event: evt.Tick_event):
         for entity in self.registered_entities:
-            [comp_fox, comp_tran] = entity.query_components([comp.C_fox, comp.C_transform])
-            
+            [comp_fox, comp_ai] = entity.query_components([comp.C_fox, comp.C_ai])
+
+            match comp_fox.state:
+                case comp.C_fox.IDLE:
+                    K = 0.06 + comp_fox.sensitivity / 1000
+                    threshold = 1 / (1 + pow(math.e, -K * (comp_fox.ticks_since_last_dash - 2000 * K))) 
+                    if rand.uniform(0, 1) <= threshold:
+                        comp_fox.ticks_since_last_dash = 0
+                        if comp_fox.target == None:
+                            continue
+                        comp_fox.state = comp.C_fox.DASHING
+                        comp_ai.disable = float("inf")
+                    else:
+                        comp_fox.ticks_since_last_dash += 1
+
+    def on_collision_event(self, event: evt.Collision_event):
+        [entity1_tran] = event.entity1.query_components([comp.C_transform])
+        [entity2_child] = event.entity2.query_components([comp.C_child_of])
+        comp_fox = entity2_child.parent.query_components([comp.C_fox, comp.C_ai])
+        if len(comp_fox) != 2:
+            return
+        if comp_fox[0].state == comp.C_fox.DASHING:
+            return
+        comp_fox[0].target = [entity1_tran.x, entity1_tran.y]
 
 
 class S_monkey(core.System):
