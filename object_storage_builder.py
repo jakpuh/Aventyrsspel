@@ -175,6 +175,20 @@ def fill_object_storage():
         comp.C_thorn(1)\
     ],constructor(monkey_constructor))
 
+    Object_storage().add("Monster", "Boomer", [\
+        comp.C_boomer(10),\
+        comp.C_ai(),\
+        comp.C_transform(None, None),\
+        comp.C_health(10),\
+        comp.C_sprite([ 
+            " _____ ",
+            "|O . O|",
+            " \[']/",
+        ]),\
+        comp.C_hitbox(7,3),\
+        comp.C_thorn(1)
+        ],constructor(transform_constructor))
+
     Object_storage().add("Projectile", "Bomb", [\
         comp.C_transform(None, None),\
         comp.C_sprite([
