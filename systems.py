@@ -217,6 +217,27 @@ class S_monkey(core.System):
         # comp_monkey[0].phase_state = comp.C_monkey.Phase_1(0)
 
 
+class S_bomb(core.System):
+    component_mask = [comp.C_bomb, comp.C_transform]
+    
+    def __init__(self, event_handler: core.Event_handler, world):
+        super().__init__()
+        self.event_handler = event_handler
+        self.world = world
+
+    def on_tick_event(self, event: evt.Tick_event):
+        destroy_lst = []
+        for entity in self.registered_entities:
+            [comp_tran, comp_bomb] = entity.query_components([comp.C_transform, comp.C_bomb])
+            if comp_bomb.det_time <= 0:
+                Object_storage().clone(self.world, "Misc", "Explosion", [(comp_tran.x - comp_bomb.radius, comp_tran.y - comp_bomb.radius)])
+                destroy_lst.append(entity)
+                continue
+            comp_bomb.det_time -= 1
+        for entity in destroy_lst:
+            entity.destroy_entity()
+
+
 # TODO: create system which destroys the entity and use event to call it, instead of directly call destroy_entity. This because we need to also destroy all the children
 
 class S_range(core.System):
