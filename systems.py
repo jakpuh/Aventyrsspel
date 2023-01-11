@@ -184,8 +184,8 @@ class S_boomer(core.System):
         for entity in self.registered_entities:
             [comp_boom, comp_tran] = entity.query_components([comp.C_boomer, comp.C_transform])
             if comp_boom.reload_ticks <= 0:
-                comp_boom.reload_ticks = comp_boom.fire_ticks
-                fjdksal
+                comp_boom.reload_ticks = comp_boom.fire_rate
+                Object_storage().clone(self.world, "Projectile", "Bomb", [(rand.uniform(0.1,0.9), rand.uniform(0.1,0.9)), 0.1, 10]) 
                 continue
             comp_boom.reload_ticks -= 1
 

@@ -177,7 +177,7 @@ def fill_object_storage():
 
     Object_storage().add("Monster", "Boomer", [\
         comp.C_boomer(10),\
-        comp.C_ai(),\
+        comp.C_ai(0.03),\
         comp.C_transform(None, None),\
         comp.C_health(10),\
         comp.C_sprite([ 
