@@ -25,11 +25,17 @@ class C_gangster(core.Component):
     SHOOTING = 0
     OBSERVING = 1
 
-    def __init__(self, fire_rate, reload_ticks = 10):
+    def __init__(self, fire_rate):
         self.fire_rate = fire_rate
         self.state = self.OBSERVING
-        self.reload_ticks = reload_ticks     # How many ticks this component should wait until it can shoot
+        self.reload_ticks = fire_rate     # How many ticks this component should wait until it can shoot
         self.disable = 0
+        self.target = None
+
+class C_boomer(core.Component):
+    def __init__(self, fire_rate):
+        self.fire_rate = fire_rate
+        self.reload_ticks = fire_rate
 
 class C_ai(core.Component):
     def __init__(self, speed, area = ((0.2, 0.2), (0.8, 0.8))):

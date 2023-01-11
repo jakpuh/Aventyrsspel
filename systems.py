@@ -169,6 +169,27 @@ class S_gangster(core.System):
         comp_gangster[0].state = comp_gangster[0].SHOOTING
         comp_gangster[1].disable = float("INF")
 
+class S_boomer(core.System):
+    component_mask = [comp.C_boomer, comp.C_transform]
+
+    def __init__(self, event_handler: core.Event_handler, world):
+        super().__init__()
+        self.event_handler = event_handler
+        self.world = world
+    
+    def run(self, dt):
+        pass
+
+    def on_tick_event(self, event: evt.Tick_event):
+        for entity in self.registered_entities:
+            [comp_boom, comp_tran] = entity.query_components([comp.C_boomer, comp.C_transform])
+            if comp_boom.reload_ticks <= 0:
+                comp_boom.reload_ticks = comp_boom.fire_ticks
+                fjdksal
+                continue
+            comp_boom.reload_ticks -= 1
+
+
 class S_monkey(core.System):
     component_mask = [comp.C_monkey, comp.C_transform]
 
