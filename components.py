@@ -68,6 +68,11 @@ class C_thorn():
     def __init__(self, damage):
         self.damage = damage
 
+class C_bomb(core.Component):
+    def __init__(self, radius, det_time):
+        self.radius = radius
+        self.det_time = det_time
+
 class C_impenetrable():
     pass
 

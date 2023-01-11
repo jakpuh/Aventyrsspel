@@ -151,6 +151,21 @@ def fill_object_storage():
         comp.C_thorn(1)\
     ],constructor(monkey_constructor))
 
+    Object_storage().add("Projectile", "Bomb", [\
+        comp.C_transform(None, None),\
+        comp.C_sprite([
+            "[']"
+        ]),\
+        comp.C_bomb(10, 10)
+    ],constructor(bomb_constructor))
+
+    Object_storage().add("Misc", "Explosion", [\
+        comp.C_transform(None, None),\
+        comp.C_rectangle(10, 10),\
+        comp.C_thorn(1),\
+        comp.C_lifetime(10)\
+        ],constructor(transform_constructor))
+
     Object_storage().add("Projectile", "Bullet",[\
         comp.C_bullet(None, 0.3),\
         comp.C_transform(None, None),\
