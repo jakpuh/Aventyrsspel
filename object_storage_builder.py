@@ -52,13 +52,19 @@ def range_constructor(world, entity, arguments):
 
 # 0: (pos_x, pos_y)
 def ghost_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    global debug
     transform_constructor(world, entity, arguments)
+    debug = False 
     Object_storage().clone(world, "Misc", "Range", [entity, (0.3, 0.3)])
+    debug = True
 
 # 0: (pos_x, pos_y)
 def gangster_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    global debug
     transform_constructor(world, entity, arguments)
+    debug = False
     Object_storage().clone(world, "Misc", "Range", [entity, (0.75, 0.75)])
+    debug = True
 
 # 0: (pos_x, pos_y)
 def monkey_constructor(world, entity: core.World.Entity_wrapper, arguments):
