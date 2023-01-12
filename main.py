@@ -41,7 +41,8 @@ def main():
     }
 
     dt = 0 
-    while True:
+    running = True
+    while running:
         start = time.time()
 
         # scene.run(dt)
@@ -66,6 +67,8 @@ def main():
                     tran_comp.last_x = POS[ret][1] if POS[ret][1] != None else tran_comp.x
                     player.destroy_entity()
                 current_room = next_room
+            if ret in ["nagger"]:
+                running = False 
 
         stop = time.time()
         dt = stop - start
