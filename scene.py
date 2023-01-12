@@ -76,6 +76,7 @@ class Challenge_scene(Scene):
         bomb_system = self.world.add_system(sys.S_bomb(self.event_handler, self.world))
         boomer_system = self.world.add_system(sys.S_boomer(self.event_handler, self.world))
         fox_system = self.world.add_system(sys.S_fox(self.event_handler))
+        death_system = self.world.add_system(sys.S_death())
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
         player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
@@ -83,6 +84,7 @@ class Challenge_scene(Scene):
         # text_system = self.world.add_system(sys.S_debug_render_text(right_sidebar))
         log_system = self.world.add_system(sys.S_logging(right_sidebar))
 
+        terminate_handler = sys.H_terminate(self.exit_lst)
         exit_handler = sys.H_exit(self.exit_lst)
         thorn_handler = sys.H_thorn(self.event_handler)
         delay_handler = sys.H_delay()
@@ -105,6 +107,7 @@ class Challenge_scene(Scene):
             self.build_border(dir, False)
 
         self.event_handler.subscribe_event(core.Key_event, player_system.on_key_event)
+        self.event_handler.subscribe_event(core.Key_event, terminate_handler.on_key_event)
         self.event_handler.subscribe_event(core.Key_event, keypress_debug_handler.on_key_event)
         self.event_handler.subscribe_event(evt.Tick_event, delay_handler.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, blink_system.on_tick_event)

@@ -206,6 +206,7 @@ class S_fox(core.System):
             if abs(comp_tran.x - comp_fox.target[0]) < comp_fox.speed * dt and abs(comp_tran.y - comp_fox.target[1]) < comp_fox.speed * dt:
                 comp_ai.disable = 5
                 comp_fox.state = comp.C_fox.IDLE
+                comp_fox.target = None
                 continue
 
             angle = math.atan((comp_fox.target[1] - comp_tran.y) / (comp_fox.target[0] - comp_tran.x))
@@ -490,6 +491,21 @@ class S_blink(core.System):
                 comp_sprite.texture = comp_blink.next_texture
                 comp_blink.next_texture = tmp_text
 
+class S_death(core.System):
+    component_mask = [comp.C_health]
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self, dt):
+        for entity in self.registered_entities:
+            [comp_health] = entity.query_components([comp.C_health])
+            if comp_health.health <= 0:
+                entity.destroy_entity()
+
+
+
+
 # Does an action after a specified amount of time / ticks
 class H_delay():
     def __init__(self):
@@ -513,7 +529,10 @@ class H_delay():
 
     def on_cleanup_event(self, event: evt.Cleanup_event):
         for action,delay in self.actions:
-            action()
+            try:
+                action()
+            except:
+                pass
         self.actions = []
 
 class H_thorn():
@@ -562,6 +581,16 @@ class H_exit():
     def on_collision_event(self, event: evt.Collision_event):
         [comp_exit] = event.entity1.query_components([comp.C_exit])
         self.exit_lst.append(comp_exit.name)
+
+class H_terminate():
+    def __init__(self, exit_lst):
+        self.exit_lst = exit_lst
+
+    def on_key_event(self, event: core.Key_event):
+        if event.key == 27:
+            self.exit_lst.append("nagger")
+
+        
 
 class S_debug_render_rectangle(core.System):
     component_mask = [comp.C_rectangle, comp.C_transform]
