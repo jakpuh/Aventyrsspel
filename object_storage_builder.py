@@ -120,7 +120,7 @@ def explosion_constructor(world, entity: core.World.Entity_wrapper, arguments):
 # 0: (pos_x, pos_y)
 def fox_constructor(world, entity: core.World.Entity_wrapper, arguments):
     transform_constructor(world, entity, [arguments[0]])
-    Object_storage().clone(world, "Misc", "Range", [entity, (0.5, 0.5)])
+    Object_storage().clone(world, "Misc", "Range", [entity, (0.7, 0.7)])
 
 # TODO: parse file with the information instead of hardcoding into code
 def fill_object_storage():
@@ -237,11 +237,11 @@ def fill_object_storage():
         comp.C_thorn(1)
     ],constructor(bullet_constructor))
 
-    Object_storage().add("Misc", "Sword" [\
+    Object_storage().add("Misc", "Sword",[\
         comp.C_transform(None, None),\
         comp.C_enemythorn(1),\
-        comp.C_hitbox(),\
-        comp.C_animation(),\
+        comp.C_hitbox(None, None)\
+        #comp.C_animation(),\
     ])
 
     Object_storage().add("Wall", "Default",[\
