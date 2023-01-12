@@ -147,7 +147,8 @@ def fill_object_storage():
         comp.C_sprite([" _ ","0 0","~~~"]),\
         comp.C_hitbox(3, 3),\
         comp.C_health(20),\
-        comp.C_thorn(1)\
+        comp.C_thorn(1),\
+        comp.C_monster()
     ],constructor(ghost_constructor))
 
     Object_storage().add("Monster", "Gangster", [\
@@ -157,7 +158,8 @@ def fill_object_storage():
         comp.C_sprite(["_-----"," (-#_#)","  --]=="]),\
         comp.C_hitbox(7, 3),\
         comp.C_health(20),\
-        comp.C_thorn(1)\
+        comp.C_thorn(1),\
+        comp.C_monster()
     ],constructor(gangster_constructor))
 
     Object_storage().add("Monster", "Monkey", [\
@@ -177,7 +179,8 @@ def fill_object_storage():
         ]),\
         comp.C_hitbox(15, 9),\
         comp.C_health(20),\
-        comp.C_thorn(1)\
+        comp.C_thorn(1),\
+        comp.C_monster()
     ],constructor(monkey_constructor))
 
     Object_storage().add("Monster", "Boomer", [\
@@ -191,7 +194,8 @@ def fill_object_storage():
             " \[']/",
         ]),\
         comp.C_hitbox(7,3),\
-        comp.C_thorn(1)
+        comp.C_thorn(1),\
+        comp.C_monster()
         ],constructor(transform_constructor))
 
     Object_storage().add("Monster", "Fox", [\
@@ -205,7 +209,8 @@ def fill_object_storage():
             "  \./  "
         ]),\
         comp.C_hitbox(7,3),\
-        comp.C_thorn(1)
+        comp.C_thorn(1),\
+        comp.C_monster()
         ],constructor(fox_constructor))
 
     Object_storage().add("Projectile", "Bomb", [\
@@ -231,6 +236,13 @@ def fill_object_storage():
         comp.C_hitbox(1, 1),\
         comp.C_thorn(1)
     ],constructor(bullet_constructor))
+
+    Object_storage().add("Misc", "Sword" [\
+        comp.C_transform(None, None),\
+        comp.C_enemythorn(1),\
+        comp.C_hitbox(),\
+        comp.C_animation(),\
+    ])
 
     Object_storage().add("Wall", "Default",[\
         comp.C_transform(None, None),\

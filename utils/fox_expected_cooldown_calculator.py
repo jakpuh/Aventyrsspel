@@ -3,7 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib
 
-K = 0.06
+K = 0.05
 
 def func(x, k):
     return 1 / (1 + pow(math.e, -k * (x - 2000 * k))) 

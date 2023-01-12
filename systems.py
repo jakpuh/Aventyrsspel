@@ -537,6 +537,24 @@ class H_thorn():
             self.event_handler.dispatch_event(evt.Delay_event(
                 lambda: event.entity2.remove_component(comp.C_blink), INVINC_TIME))
 
+class H_enemythorn():
+    def __init__(self, event_handler: core.Event_handler):
+        self.event_handler = event_handler
+
+    def on_collision_event(self, event: evt.Collision_event):
+        # Assumes both entities doesn't have the enemythorn and health component
+        # TODO: call take damage event or something similar and do the checks in the health_system instead
+        [comp_enemythorn] = event.entity1.query_components([comp.C_enemythorn])
+        [comp_health] = event.entity2.query_components([comp.C_health])
+
+        if len(event.entity2.query_components([comp.C_invincible])) == 0:
+            comp_health.health -= comp_enemythorn.damage
+            event.entity2.add_component(comp.C_invincible())
+            # OBS: INVIC_TIME has to be even, otherwise the monster will be invisible when blink components get removed
+            self.event_handler.dispatch_event(evt.Delay_event(
+                lambda: event.entity2.remove_component(comp.C_invincible), 10))
+
+
 class H_exit():
     def __init__(self, exit_lst):
         self.exit_lst = exit_lst
