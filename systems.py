@@ -462,6 +462,8 @@ class S_impenetrable(core.System):
     def on_collision_event(self, event):
         # Assumes only ONE is impenetrable
         # TODO: make so you go right against the impenetrable object, otherwise there will be a a big gap
+        if len(event.entity2.query_components([comp.C_range])) == 1:
+            return
         [comp_imp] = event.entity1.query_components([comp.C_impenetrable]) 
         [comp_trans] = event.entity2.query_components([comp.C_transform])
         comp_trans.x = comp_trans.last_x
