@@ -89,14 +89,14 @@ class Challenge_scene(Scene):
         thorn_handler = sys.H_thorn(self.event_handler)
         delay_handler = sys.H_delay()
 
-        Object_storage().clone(self.world, "Monster", "Ghost", [(0.75, 0.75)])
-        Object_storage().clone(self.world, "Monster", "Gangster", [(0.25, 0.75)])
-        Object_storage().clone(self.world, "Monster", "Boomer", [(0.5, 0.2)])
-        Object_storage().clone(self.world, "Monster", "Monkey", [(0.2, 0.2)])
+        # Object_storage().clone(self.world, "Monster", "Ghost", [(0.75, 0.75)])
+        # Object_storage().clone(self.world, "Monster", "Gangster", [(0.25, 0.75)])
+        # Object_storage().clone(self.world, "Monster", "Boomer", [(0.5, 0.2)])
+        # Object_storage().clone(self.world, "Monster", "Monkey", [(0.2, 0.2)])
         Object_storage().clone(self.world, "Monster", "Fox", [(0.75, 0.2)])
 
-        Object_storage().clone(self.world, "Projectile", "Bullet", [0.1, (0.75, 0.25)])
-        Object_storage().clone(self.world, "Projectile", "Bomb", [(0.5, 0.5), 0.1, 20])
+        # Object_storage().clone(self.world, "Projectile", "Bullet", [0.1, (0.75, 0.25)])
+        # Object_storage().clone(self.world, "Projectile", "Bomb", [(0.5, 0.5), 0.1, 20])
 
         all_dirs = ['U', 'D', 'L', 'R']
         no_wall_dirs = list(set(wall_dirs)^set(all_dirs))
@@ -130,6 +130,7 @@ class Challenge_scene(Scene):
         self.event_handler.subscribe_event(evt.Cleanup_event, blink_system.on_cleanup_event)
         self.event_handler.subscribe_event(evt.Cleanup_event, delay_handler.on_cleanup_event)
         self.event_handler.subscribe_event(evt.Cleanup_event, bullet_system.on_cleanup_event)
+        self.event_handler.subscribe_event(evt.Cleanup_event, player_system.on_cleanup_event)
 
 class Puzzle_scene(Scene):
     pass

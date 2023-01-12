@@ -79,6 +79,9 @@ class S_player(core.System):
             self.event_handler.dispatch_event(evt.Log_event("Has blink", has_blink))
             self.event_handler.dispatch_event(evt.Log_event("Position", f"{comp_tran.x:.2f}" + " " + f"{comp_tran.y:.2f}"))
 
+    def on_cleanup_event(self, event):
+        self.registered_entities[0].destroy_entity()
+
     # refactor screen_wrapper; don't use event handler
     # move this to the run function
     def on_key_event(self, event: core.Key_event):
@@ -200,6 +203,7 @@ class S_fox(core.System):
     def run(self, dt):
         for entity in self.registered_entities: 
             [comp_tran, comp_fox, comp_ai] = entity.query_components([comp.C_transform, comp.C_fox, comp.C_ai])
+            self.event_handler.dispatch_event(evt.Log_event("Fox state", comp_fox.state))
             if comp_fox.target == None or comp_fox.state != comp.C_fox.DASHING:
                 continue
 
@@ -207,6 +211,7 @@ class S_fox(core.System):
                 comp_ai.disable = 5
                 comp_fox.state = comp.C_fox.IDLE
                 comp_fox.target = None
+                self.event_handler.dispatch_event(evt.Log_event("Fox target", None))
                 continue
 
             angle = math.atan((comp_fox.target[1] - comp_tran.y) / (comp_fox.target[0] - comp_tran.x))
@@ -222,19 +227,20 @@ class S_fox(core.System):
     def on_tick_event(self, event: evt.Tick_event):
         for entity in self.registered_entities:
             [comp_fox, comp_ai] = entity.query_components([comp.C_fox, comp.C_ai])
+            if comp_fox.state != comp.C_fox.IDLE:
+                return
 
-            match comp_fox.state:
-                case comp.C_fox.IDLE:
-                    K = 0.06 + comp_fox.sensitivity / 1000
-                    threshold = 1 / (1 + pow(math.e, -K * (comp_fox.ticks_since_last_dash - 2000 * K))) 
-                    if rand.uniform(0, 1) <= threshold:
-                        comp_fox.ticks_since_last_dash = 0
-                        if comp_fox.target == None:
-                            continue
-                        comp_fox.state = comp.C_fox.DASHING
-                        comp_ai.disable = float("inf")
-                    else:
-                        comp_fox.ticks_since_last_dash += 1
+            K = 0.06 + comp_fox.sensitivity / 1000
+            threshold = 1 / (1 + pow(math.e, -K * (comp_fox.ticks_since_last_dash - 2000 * K))) 
+            if rand.uniform(0, 1) <= threshold:
+                comp_fox.ticks_since_last_dash = 0
+                if comp_fox.target == None:
+                    continue
+                comp_fox.state = comp.C_fox.DASHING
+                comp_ai.disable = float("inf")
+                comp_fox.ticks = 0
+            else:
+                comp_fox.ticks_since_last_dash += 1
 
     def on_collision_event(self, event: evt.Collision_event):
         [entity1_tran] = event.entity1.query_components([comp.C_transform])
@@ -243,8 +249,11 @@ class S_fox(core.System):
         if len(comp_fox) != 2:
             return
         if comp_fox[0].state == comp.C_fox.DASHING:
+            self.event_handler.dispatch_event(evt.Log_event("Fox target", "Dashing"))
             return
         comp_fox[0].target = [entity1_tran.x, entity1_tran.y]
+        self.event_handler.dispatch_event(evt.Log_event("Fox target", f"{entity1_tran.x:.2f}, {entity1_tran.y:.2f}, " + str(comp_fox[0].ticks)))
+        comp_fox[0].ticks += 1
 
 
 class S_monkey(core.System):
@@ -435,7 +444,7 @@ class S_collision(core.System):
             for j,entity2 in enumerate(self.registered_entities):
                 if j <= i:
                     continue
-                # 🤫 TODO: fix, the event might destroy the entity which means stuff breaks. The for loop might also become invalid / skip entities
+                # TODO: fix, the event might destroy the entity which means stuff breaks. The for loop might also become invalid / skip entities
                 try:
                     [hit_comp1, tran_comp1] = entity1.query_components([comp.C_hitbox, comp.C_transform])
                     [hit_comp2, tran_comp2] = entity2.query_components([comp.C_hitbox, comp.C_transform])
@@ -445,10 +454,22 @@ class S_collision(core.System):
                 # rel_hit_comp2 = self.screen.abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
                 rel_hit_comp1 = self.screen.abs_to_rel(hit_comp1.w, hit_comp1.h) if not hit_comp1.relative_pos else [hit_comp1.w, hit_comp1.h]
                 rel_hit_comp2 = self.screen.abs_to_rel(hit_comp2.w, hit_comp2.h) if not hit_comp2.relative_pos else [hit_comp2.w, hit_comp2.h]
+                p1 = entity1.query_components([comp.C_player, comp.C_hitbox])
+                p2 = entity2.query_components([comp.C_player, comp.C_hitbox])
+                f1 = entity1.query_components([comp.C_range, comp.C_hitbox])
+                f2 = entity2.query_components([comp.C_range, comp.C_hitbox])
+                show = False
+                if (len(p1) == 2 and len(f2) == 2) or (len(p2) == 2 and len(f1) == 2):
+                    if len(p2) == 2:
+                        p1 = p2
+                        f2 = f1
+                    show = True
                 if tran_comp1.x < rel_hit_comp2[0] + tran_comp2.x and \
                     tran_comp1.x + rel_hit_comp1[0] > tran_comp2.x and \
                     tran_comp1.y < rel_hit_comp2[1] + tran_comp2.y and \
-                    tran_comp1.y + rel_hit_comp1[1] > tran_comp2.y: \
+                    tran_comp1.y + rel_hit_comp1[1] > tran_comp2.y:
+                    if show:
+                        self.event_handler.dispatch_event(evt.Log_event("Fox player", str(p1[1].w) + ", " + str(p1[1].h)))
                     self.event_handler.dispatch_event(evt.Collision_event(entity1, entity2))
 
 class S_impenetrable(core.System):
@@ -462,7 +483,8 @@ class S_impenetrable(core.System):
     def on_collision_event(self, event):
         # Assumes only ONE is impenetrable
         # TODO: make so you go right against the impenetrable object, otherwise there will be a a big gap
-        if len(event.entity2.query_components([comp.C_range])) == 1:
+        comp_range = event.entity2.query_components([comp.C_range])
+        if len(comp_range) == 1:
             return
         [comp_imp] = event.entity1.query_components([comp.C_impenetrable]) 
         [comp_trans] = event.entity2.query_components([comp.C_transform])
@@ -606,7 +628,10 @@ class S_debug_render_rectangle(core.System):
         for entity in self.registered_entities:
             # TODO: don't assume that it uses relative position
             [comp_rectangle, comp_trans] = entity.query_components([comp.C_rectangle, comp.C_transform])
-            self.screen.draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)
+            try:
+                self.screen.draw_rectangle(comp_trans.x, comp_trans.y, comp_rectangle.width, comp_rectangle.height)
+            except:
+                pass
 
 class S_debug_render_text(core.System):
     component_mask = [comp.C_text, comp.C_transform]
@@ -648,13 +673,19 @@ class S_logging(core.System):
         super().__init__()
         self.screen = screen
         self.d = {}
+        self.count = 0
 
     def on_log_event(self, event: evt.Log_event):
+        if event.key == "Fox player":
+            self.count += 1
         self.d[event.key] = event.value
 
     def run(self, dt):
+        self.d["COUNTING"] = self.count
         i = 0
         for key, value in self.d.items():
             self.screen.draw_text(0, i, str(key) + ": " + str(value))
             i += 0.05
+        self.d["Fox player"] = False
+        self.count = 0
         self.screen.refresh()

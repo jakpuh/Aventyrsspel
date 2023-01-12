@@ -47,6 +47,7 @@ class C_fox(core.Component):
         self.sensitivity = sensitivity  
         self.ticks_since_last_dash = 0
         self.speed = 0.2
+        self.ticks = 0
 
 class C_ai(core.Component):
     def __init__(self, speed, area = ((0.2, 0.2), (0.8, 0.8))):
