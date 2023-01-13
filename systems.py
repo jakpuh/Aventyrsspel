@@ -250,7 +250,7 @@ class S_fox(core.System):
 
 
 class S_monkey(core.System):
-    component_mask = [comp.C_monkey, comp.C_transform]
+    component_mask = [comp.C_monkey, comp.C_transform, comp.C_fox, comp.C_boomer, comp.C_transform]
 
     def __init__(self, event_handler: core.Event_handler, world):
         super().__init__()
@@ -258,12 +258,30 @@ class S_monkey(core.System):
         self.world = world
 
     def run(self, dt):
-        pass
+        for entity in self.registered_entities: 
+            [comp_tran, comp_fox, comp_ai] = entity.query_components([comp.C_transform, comp.C_fox, comp.C_ai])
+            if comp_fox.target == None or comp_fox.state != comp.C_fox.DASHING:
+                continue
+
+            if abs(comp_tran.x - comp_fox.target[0]) < comp_fox.speed * dt and abs(comp_tran.y - comp_fox.target[1]) < comp_fox.speed * dt:
+                comp_ai.disable = 5
+                comp_fox.state = comp.C_fox.IDLE
+                comp_fox.target = None
+                continue
+
+            angle = math.atan((comp_fox.target[1] - comp_tran.y) / (comp_fox.target[0] - comp_tran.x))
+            dir = angle + (0 if comp_fox.target[0] > comp_tran.x else math.pi)
+            hor_move = math.cos(dir) * dt * comp_fox.speed
+            ver_move = math.sin(dir) * dt * comp_fox.speed
+            comp_tran.last_x = comp_tran.x
+            comp_tran.last_y = comp_tran.y
+            comp_tran.x += hor_move
+            comp_tran.y += ver_move
 
     def on_tick_event(self, event: evt.Tick_event):
         for entity in self.registered_entities:
-            [comp_monk, comp_tran] = entity.query_components([comp.C_monkey, comp.C_transform]) 
-            match comp_monk.state:
+            [comp_monk, comp_tran, comp_boom, comp_fox, comp_ai] = entity.query_components([comp.C_monkey, comp.C_transform, comp.C_boomer, comp.C_fox, comp.C_ai]) 
+            match 0:
                 # Do nothing; happens when a player hasn't been detected yet and between phases
                 case comp.C_monkey.IDLE:
                     continue
@@ -277,9 +295,24 @@ class S_monkey(core.System):
                     Object_storage().clone(self.world, "Projectile", "Bullet", [dir, (comp_tran.x, comp_tran.y)])
                     comp_monk.phase_state.reload_time = 500
                 case comp.C_monkey.PHASE_2:
-                    pass
+                    if comp_boom.reload_ticks <= 0:
+                        comp_boom.reload_ticks = comp_boom.fire_rate
+                        Object_storage().clone(self.world, "Projectile", "Bomb", [(rand.uniform(0.1,0.9), rand.uniform(0.1,0.9)), 0.1, 10]) 
+                        continue
+                    comp_boom.reload_ticks -= 1
                 case comp.C_monkey.PHASE_3:
-                    pass
+                    match comp_fox.state:
+                        case comp.C_fox.IDLE:
+                            K = 0.06 + comp_fox.sensitivity / 1000
+                            threshold = 1 / (1 + pow(math.e, -K * (comp_fox.ticks_since_last_dash - 2000 * K))) 
+                            if rand.uniform(0, 1) <= threshold:
+                                comp_fox.ticks_since_last_dash = 0
+                                if comp_fox.target == None:
+                                    continue
+                                comp_fox.state = comp.C_fox.DASHING
+                                comp_ai.disable = float("inf")
+                            else:
+                                comp_fox.ticks_since_last_dash += 1
 
         # phase 2: throw bombs
         # phase 3: tail player

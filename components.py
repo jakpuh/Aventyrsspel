@@ -66,7 +66,10 @@ class C_monkey(core.Component):
             self.reload_time = reload_time
     
     class Phase_2():
-        pass
+        def __init__(self, fire_rate):
+            self.fire_rate = fire_rate
+            self.reload_ticks = fire_rate
+
 
     class Phase_3():
         pass

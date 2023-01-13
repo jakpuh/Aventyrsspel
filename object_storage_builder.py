@@ -163,7 +163,9 @@ def fill_object_storage():
     ],constructor(gangster_constructor))
 
     Object_storage().add("Monster", "Monkey", [\
-        comp.C_monkey(),\
+        comp.C_monkey().Phase_1(10),\
+        comp.C_boomer(10),\
+        comp.C_fox(),\
         comp.C_ai(0.02, ((0.4, 0.4), (0.6, 0.6))),\
         comp.C_transform(None, None),\
         comp.C_sprite([
@@ -267,17 +269,17 @@ def fill_object_storage():
 "                ===",
 "                   \ "],
 
-["            \ ",
-"              \ ",
+["             \ ",
 "               \ ",
-"                ===",
-"                  \ "],
+"                \ ",
+"                 ===",
+"                   \ "],
 
-["              \ ",
-"                |",
-"                |",
-"                ===",
-"                  \ "],
+["               \ ",
+"                 |",
+"                 |",
+"                 ===",
+"                   \ "],
 
 ["                 |",
 "                  |",
