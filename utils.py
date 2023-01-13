@@ -18,7 +18,7 @@ def collision_event_pred_generator(entity1_comps: list, entity2_comps: list):
     This predicate will also put the entities in the order which their comps are in (e.g if entity2 has the components of entity1_comps then it will swap with entity1)
     '''
     # Lambda would be ideal for this case but it looks like pythons lambda doesn't support multiline...
-    # This means we have to create a inner function and then return it instead; the reason this is possible is because python functions are actually objects who can store state
+    # This means we have to create a inner function and then return it instead; the reason this is possible is because python functions are actually objects which can store state
     # This wouldn't be possible if python functions behaved more like traditional functions which may lead to confusion
     def _(event: evt.Collision_event):
         # The order of the entities are not defined which means the entity correlated with entity1_comps or entity2_comps can be either entity1 or entity2
