@@ -77,6 +77,7 @@ class Challenge_scene(Scene):
         boomer_system = self.world.add_system(sys.S_boomer(self.event_handler, self.world))
         fox_system = self.world.add_system(sys.S_fox(self.event_handler))
         death_system = self.world.add_system(sys.S_death())
+        animation_system = self.world.add_system(sys.S_animation())
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
         player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
@@ -97,6 +98,7 @@ class Challenge_scene(Scene):
 
         Object_storage().clone(self.world, "Projectile", "Bullet", [0.1, (0.75, 0.25)])
         Object_storage().clone(self.world, "Projectile", "Bomb", [(0.5, 0.5), 0.1, 20])
+        Object_storage().clone(self.world, "Misc", "Sword", [(0.5, 0.7)])
 
         all_dirs = ['U', 'D', 'L', 'R']
         no_wall_dirs = list(set(wall_dirs)^set(all_dirs))
@@ -117,6 +119,7 @@ class Challenge_scene(Scene):
         self.event_handler.subscribe_event(evt.Tick_event, bomb_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, boomer_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, fox_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, animation_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Log_event, log_system.on_log_event)
         self.event_handler.subscribe_event(evt.Collision_event, ghost_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, gangster_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_range, comp.C_child_of]))

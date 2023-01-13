@@ -47,6 +47,8 @@ class S_render(core.System):
                 print(1 / dt)
         for entity in self.registered_entities:
             [comp_sprite, comp_trans] = entity.query_components([comp.C_sprite, comp.C_transform])
+            if comp_sprite.texture == None:
+                continue
             self.screen.draw_texture(comp_sprite.texture, comp_trans.x, comp_trans.y)
 
 class S_player(core.System):
@@ -505,8 +507,30 @@ class S_death(core.System):
             if comp_health.health <= 0:
                 entity.destroy_entity()
 
+class S_animation(core.System):
+    component_mask = [comp.C_animation, comp.C_sprite]
 
+    def __init__(self):
+        super().__init__()
 
+    def run(self, dt):
+        pass
+
+    def on_tick_event(self, event: evt.Tick_event):
+        destroy_lst = []
+        for entity in self.registered_entities:
+            [comp_anim, comp_sprite] = entity.query_components([comp.C_animation, comp.C_sprite])
+            if comp_anim.remaining_ticks > 0:
+                comp_anim.remaining_ticks -= 1
+                continue
+            if comp_anim.index >= len(comp_anim.textures):
+                destroy_lst.append(entity)
+                continue
+            comp_sprite.texture = comp_anim.textures[comp_anim.index]
+            comp_anim.index += 1
+            comp_anim.remaining_ticks = comp_anim.animation_speed
+        for entity in destroy_lst:
+            entity.destroy_entity()
 
 # Does an action after a specified amount of time / ticks
 class H_delay():

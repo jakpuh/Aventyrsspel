@@ -115,6 +115,13 @@ class C_sprite(core.Component):
     def __init__(self, texture):
         self.texture = texture
 
+class C_animation(core.Component):
+    def __init__(self, textures: list, animation_speed = 0):
+        self.textures = textures
+        self.animation_speed = animation_speed
+        self.index = 0
+        self.remaining_ticks = 0
+
 class C_hitbox(core.Component):
     def __init__(self, w, h, relative_pos=False):
         self.w = w
