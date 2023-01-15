@@ -1,7 +1,4 @@
-import sys
-
-sys.path.insert(1, 'core')
-import core
+import core.core as core
 import copy
 from typing import Callable
 
@@ -22,5 +19,4 @@ class Object_storage(metaclass=core.Singleton):
         if not obj_name in self.objects[obj_class]:
             raise Exception("Object not found in class")
         comp_copy = copy.deepcopy(self.objects[obj_class][obj_name][0])
-        if self.objects[obj_class][obj_name][1] != None:
-            self.objects[obj_class][obj_name][1](world, comp_copy, arguments)
+        return self.objects[obj_class][obj_name][1](world, comp_copy, arguments)

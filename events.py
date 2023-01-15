@@ -1,7 +1,4 @@
-import sys
-
-sys.path.insert(1, 'core')
-import core 
+import core.core as core
 
 class Tick_event(core.Event):
     pass
@@ -19,6 +16,14 @@ class Delay_event(core.Event):
 
 class Cleanup_event(core.Event):
     pass
+
+class Destroy_entity_event(core.Event):
+    def __init__(self, entity):
+        self.entity = entity
+
+class Target_event(core.Event):
+    def __init__(self, entity):
+        self.entity = entity
 
 # ========== DEBUG =================00
 

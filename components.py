@@ -3,23 +3,41 @@ Every entity has one or more of the following "Components"
 A component is a attribute which defines a specific quality of an entity
 The systems will then iterate through the components of an entity and create behavior
 '''
-import sys
+import core.core as core
 
-sys.path.insert(1, 'core')
-import core
+class C_target(core.Component):
+    def __init__(self, target):
+        self.target = target
 
-class C_player(core.Component):
+# Makes the entity hurtful to friends but not enemies
+class C_enemy(core.Component):
     pass
 
-class C_ghost(core.Component):
-    STILL = 0
-    MOVING = 1
+# Makes the entity hurtful to enemies but not friends
+class C_friend(core.Component):
+    pass
 
-    # TODO: look more into how python represent enums
+# Makes the entity hurtful to everything
+class C_joker(core.Component):
+    pass
+
+class C_xp(core.Component):
+    def __init__(self, xp):
+        self.xp = xp
+
+class C_boss_game_manager(core.Component):
+    def __init__(self, action):
+        self.action = action
+
+class C_player(core.Component):
+    ATTACK_COOLDOWN = 13
+
+    def __init__(self):
+        self.attack_cooldown = 0
+
+class C_ghost(core.Component):
     def __init__(self, speed):
         self.speed = speed
-        self.target = None
-        self.state = self.STILL
 
 class C_gangster(core.Component):
     SHOOTING = 0
@@ -47,6 +65,11 @@ class C_fox(core.Component):
         self.sensitivity = sensitivity  
         self.ticks_since_last_dash = 0
         self.speed = 0.2
+    
+class C_delay(core.Component):
+    def __init__(self, actions: list[tuple[2]] = [], named_actions: dict = {}):
+        self.named_actions = named_actions
+        self.actions = actions
 
 class C_ai(core.Component):
     def __init__(self, speed, area = ((0.2, 0.2), (0.8, 0.8))):
@@ -152,13 +175,17 @@ class C_child_of(core.Component):
     def __init__(self, parent):
         self.parent = parent
 
-class C_range(core.Component):
-    def __init__(self, offset):
-        self.offset = offset
+class C_scout(core.Component):
+    pass
 
 class C_exit(core.Component):
     def __init__(self, name):
         self.name = name
+
+class C_follow(core.Component):
+    def __init__(self, offset, relative_pos = False):
+        self.offset = offset
+        self.relative_pos = relative_pos
 
 # No entity should have this component which means the system does not require to iterate through entities
 class C_none(core.Component):

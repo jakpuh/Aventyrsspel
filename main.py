@@ -12,9 +12,10 @@ from object_storage import *
 import components as comp
 import curses
 import time
+import events as evt
 
 FPS = 30
-
+storage_builder.fill_object_storage()
 
 def main():
     last_dirs = [1,2,3,4]
@@ -23,7 +24,6 @@ def main():
     left_sidebar = core.screen.create_window(0.0, 0.0, 0.15, 1) 
     right_sidebar = core.screen.create_window(0.85, 0.0, 0.15, 1)
     # left_sidebar = core.screen.create_window(0.9, 0.0, 0.1, 1)
-    storage_builder.fill_object_storage()
 
     generator = Dungeon_generator(Layout_generator_spanning())
     # rooms = generator.generate(core.screen, core.screen, core.screen)
@@ -49,6 +49,8 @@ def main():
         ret_lst = rooms[current_room].scene.run(dt)
         # print(last_dirs)
         for ret in ret_lst:
+            if ret == "exit":
+                running = False
             if ret in "UDRL":
                 rooms[current_room].scene.cleanup()
                 last_dirs = last_dirs[1:]
@@ -65,9 +67,9 @@ def main():
                     tran_comp.x = POS[ret][1] if POS[ret][1] != None else tran_comp.x
                     tran_comp.last_y = POS[ret][0] if POS[ret][0] != None else tran_comp.y
                     tran_comp.last_x = POS[ret][1] if POS[ret][1] != None else tran_comp.x
-                    player.destroy_entity()
+                    rooms[current_room].scene.event_handler.dispatch_event(evt.Destroy_entity_event(player))
                 current_room = next_room
-            if ret in ["nagger"]:
+            if ret == "nagger":
                 running = False 
 
         stop = time.time()
@@ -77,4 +79,5 @@ def main():
         # curses.napms(int(max(1 / FPS - dt, 0)) * 1000)
         dt = max(dt, 1 / FPS)
 
-core.screen.wrapper(main)
+while True:
+    core.screen.wrapper(main)

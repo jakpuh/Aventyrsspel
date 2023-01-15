@@ -91,7 +91,7 @@ class World():
 
     def destroy_entity(self, entity):
         if not self._entity_exists(entity):
-            raise Exception("Entity does not exist") 
+            raise Exception("Entity does not exist '" + str(entity) + "'") 
         for component_type in self.components:
             self.remove_component(entity, component_type)
         self.entities.remove(entity)
@@ -106,7 +106,7 @@ class World():
     # OBS: if entity already has a component with the same type, then the old component will get replaced
     def add_component(self, entity, component):
         if not self._entity_exists(entity):
-            raise Exception("Entity does not exist") 
+            raise Exception("Entity does not exist '" + str(entity) + "'") 
         component_type = type(component)
         if not component_type in self.components:
             self.components[component_type] = []
@@ -150,7 +150,7 @@ class World():
             if not component_type in self.components:
                 # raise Exception(f"Component with type \'{component_type}\' not valid")
                 # TODO: fix
-                return []
+                continue
             for current_entity,current_component in self.components[component_type]:
                 if (current_entity == entity):
                     ans.append(current_component) 

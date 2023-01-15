@@ -3,6 +3,8 @@ import event_handler as es
 import singleton
 from numbers import Number
 from typing import Tuple
+import regex as re
+import time
 
 class Key_event(es.Event):
     def __init__(self, key):
@@ -18,12 +20,38 @@ class Window():
         self.window.refresh()
         self.window.clear()
     
-    def draw_row(self, row: int, abs_x: int, abs_y: int):
+    def draw_row(self, row: str, abs_x: int, abs_y: int):
         [max_height, max_width] = self.get_dimension()
         if (abs_x >= max_width or abs_y >= max_height):
             return
+
         dist_to_right = max_width - abs_x 
-        self.window.addstr(max(abs_y, 0), max(abs_x, 0), row[0:min(len(row), dist_to_right)])
+        row_split = re.split(r'(!+)', row[min(len(row),max(0, -abs_x)):len(row)])
+        #row_split = re.split(r'(\s+)', row[min(len(row),max(0, -abs_x)):-1])
+
+        for seq in row_split:
+            if abs_x >= max_width:
+                break
+            if len(seq) != 0 and seq[0] != '!':
+                self.window.addstr(abs_y, abs_x, seq)
+            abs_x += len(seq)
+
+        # if len(row_split) >= 1 and len(row_split[0]) != 0:
+        #     if row_split[0][0] == ' ':
+        #         abs_x += len(row_split[0])
+        #         row = row[len(row_split[0]):-1]
+        # if len(row_split) >= 2 and len(row_split[-1]) != 0:
+        #     if row_split[-1][0] == ' ':
+        #         row = row[0:len(row)-len(row_split[-1])] 
+        # for seq in row_split:
+        #     if abs_x >= max_width:
+        #         break
+        #     if len(seq) != 0 and seq[0] != ' ':
+        #         self.window.addstr(abs_y, abs_x, seq)
+        #     abs_x += len(seq)
+                
+        #time.sleep(1)
+        #self.window.addstr(max(abs_y, 0), max(abs_x, 0), row[0:min(len(row), dist_to_right)])
 
     def draw_texture(self, texture, rel_x, rel_y):
         [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y)

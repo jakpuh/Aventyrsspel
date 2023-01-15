@@ -9,8 +9,6 @@ from object_storage import Object_storage
 import random as rand
 import math
 
-
-
 def collision_event_pred_generator(entity1_comps: list, entity2_comps: list):
     '''
     Generates and returns a predicate function for callables who subscribe to collision events
@@ -34,4 +32,26 @@ def collision_event_pred_generator(entity1_comps: list, entity2_comps: list):
             event.entity2 = tmp
             return True
         return False
+    return _
+
+def collision_event_pred_generator_parent(entity1_parent_comps: list, entity2_parent_comps: list):
+    '''
+    Generates and returns a predicate function for callables who subscribe to collision events
+    This predicate will check if the entity1 / entity2 parents (entity1 / entity2 have to have the child_of component) have the components in the entity1_parent_comps / entity2_parent_comps
+    If the parameters are None then it will not check if entity has child_of component for the parameter which is None
+    The collision event pred generator or similar have to be called first to create the order of the entities
+    '''
+    def _(event: evt.Collision_event):
+        entity1 = event.entity1.query_components([comp.C_child_of])
+        entity2 = event.entity2.query_components([comp.C_child_of])
+        if len(entity1) == 0 and entity1_parent_comps != None:
+            return False
+        if len(entity2) == 0 and entity2_parent_comps != None:
+            return False
+
+        if entity1_parent_comps != None and len(entity1[0].parent.query_components(entity1_parent_comps)) != len(entity1_parent_comps) or\
+           entity2_parent_comps != None and len(entity2[0].parent.query_components(entity2_parent_comps)) != len(entity2_parent_comps):
+            return False
+
+        return True
     return _

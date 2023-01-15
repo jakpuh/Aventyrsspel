@@ -1,8 +1,5 @@
-import sys
-
-sys.path.insert(1, 'core')
+import core.core as core
 from object_storage import Object_storage
-import core
 import components as comp
 from typing import Callable
 
@@ -15,6 +12,7 @@ def constructor(delegated_constructor: Callable):
         for component in components:
             entity.add_component(component)
         delegated_constructor(world, entity, arguments)
+        return entity
     return _
 
 # 0: (pos_x, pos_y)
@@ -38,9 +36,9 @@ def range_constructor(world, entity, arguments):
     transform_constructor(world, entity, [(comp_tran_parent.x - arguments[1][0] / 2, comp_tran_parent.y - arguments[1][1] / 2)])
     hitbox_constructor(world, entity, [arguments[1]])
 
-    [comp_range, comp_child] = entity.query_components([comp.C_range, comp.C_child_of])
+    [comp_follow, comp_child] = entity.query_components([comp.C_follow, comp.C_child_of])
     comp_child.parent = arguments[0]
-    comp_range.offset = (-arguments[1][0] / 2, -arguments[1][1] / 2)
+    comp_follow.offset = (-arguments[1][0] / 2, -arguments[1][1] / 2)
     
     # DEBUG
     if not debug:
@@ -119,65 +117,106 @@ def explosion_constructor(world, entity: core.World.Entity_wrapper, arguments):
 
 # 0: (pos_x, pos_y)
 def fox_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    global debug
     transform_constructor(world, entity, [arguments[0]])
+    debug = False
     Object_storage().clone(world, "Misc", "Range", [entity, (0.7, 0.7)])
+    debug = True
+
+# 0: parent
+def spinning_swords_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    [comp_child] = entity.query_components([comp.C_child_of])
+    comp_child.parent = arguments[0]
+
+# 0: action
+# TODO: pus constructor as prefix instead of suffix
+def game_manager_boss_constructor(world, entity: core.World.Entity_wrapper, arguments):
+    [comp_gm_boss] = entity.query_components([comp.C_boss_game_manager])
+    comp_gm_boss.action = arguments[0]
 
 # TODO: parse file with the information instead of hardcoding into code
 def fill_object_storage():
+    Object_storage().add("GameManager", "Boss", [
+        comp.C_boss_game_manager(None)
+    ],constructor(game_manager_boss_constructor))
+
     Object_storage().add("Misc", "Range", [
-        comp.C_range(None),
+        comp.C_scout(),
         comp.C_transform(None, None),
         comp.C_hitbox(None, None, True),
         comp.C_child_of(None),
+        comp.C_follow(None, True),
         comp.C_rectangle(None, None)
     ],constructor(range_constructor))
 
     Object_storage().add("Player", "Default", [\
-        comp.C_player(),\
+        comp.C_player(),
+        comp.C_friend(), 
         comp.C_transform(None, None),\
-        comp.C_sprite([" ~~~ ","|0>0|"," \o/ "]),\
+        comp.C_sprite([
+            "!~~~",
+            "|0>0|",
+            "!\o/"
+        ]),\
         comp.C_hitbox(5, 3),\
-        comp.C_health(100)\
+        comp.C_health(100),
+        comp.C_xp(0) 
     ],constructor(transform_constructor))
 
     Object_storage().add("Monster", "Ghost", [\
         comp.C_ghost(0.03),\
         comp.C_ai(0.06),\
+        comp.C_enemy(),
+        comp.C_delay(),
         comp.C_transform(None, None),\
-        comp.C_sprite([" _ ","0 0","~~~"]),\
+        comp.C_sprite([
+            "!_!",
+            "0 0",
+            "~~~"
+        ]),\
         comp.C_hitbox(3, 3),\
         comp.C_health(20),\
         comp.C_thorn(1),\
-        comp.C_monster()
+        comp.C_monster(),
+        comp.C_xp(20) 
     ],constructor(ghost_constructor))
 
     Object_storage().add("Monster", "Gangster", [\
         comp.C_gangster(1),\
         comp.C_ai(0.01),\
+        comp.C_enemy(),
+        comp.C_delay(),
         comp.C_transform(None, None),\
-        comp.C_sprite(["_-----"," (-#_#)","  --]=="]),\
+        comp.C_sprite([
+            "_-----",
+            "!(-#_#)",
+            "!!--]=="
+        ]),\
         comp.C_hitbox(7, 3),\
         comp.C_health(20),\
         comp.C_thorn(1),\
-        comp.C_monster()
+        comp.C_monster(),
+        comp.C_xp(30) 
     ],constructor(gangster_constructor))
 
     Object_storage().add("Monster", "Monkey", [\
-        comp.C_monkey().Phase_1(10),\
+        comp.C_monkey(),\
         comp.C_boomer(10),\
+        comp.C_enemy(),
         comp.C_fox(),\
         comp.C_ai(0.02, ((0.4, 0.4), (0.6, 0.6))),\
         comp.C_transform(None, None),\
+        comp.C_xp(100),
         comp.C_sprite([
-            "     ,\"^\".     ",
-            "    / _=_ \    ",
-            "   (,(ovo),)   ",
-            " .-.\(-\"-)/.-. ",
+            "!!!!!,\"^\".",
+            "!!!!/ _=_ \\",
+            "!!!(,(ovo),)",
+            "!.-.\(-\"-)/.-.",
             "{    \___/    }",
             "{   } .  . {  }",
             "{   --| |--   }",
-            " \____| |____/ ",
-            "      | |      "
+            "!\____| |____/",
+            "!!!!!!| |"
         ]),\
         comp.C_hitbox(15, 9),\
         comp.C_health(20),\
@@ -188,12 +227,14 @@ def fill_object_storage():
     Object_storage().add("Monster", "Boomer", [\
         comp.C_boomer(10),\
         comp.C_ai(0.03),\
+        comp.C_enemy(),
         comp.C_transform(None, None),\
         comp.C_health(10),\
+        comp.C_xp(25),
         comp.C_sprite([ 
-            " _____ ",
+            "!_____",
             "|O . O|",
-            " \[']/",
+            "!\[']/",
         ]),\
         comp.C_hitbox(7,3),\
         comp.C_thorn(1),\
@@ -203,14 +244,16 @@ def fill_object_storage():
     Object_storage().add("Monster", "Fox", [\
         comp.C_fox(),\
         comp.C_ai(0.05),\
+        comp.C_enemy(),
         comp.C_transform(None, None),\
         comp.C_health(10),\
         comp.C_sprite([
             "(\ _ /)",
             "\<> <>/",
-            "  \./  "
+            "!!\./"
         ]),\
         comp.C_hitbox(7,3),\
+        comp.C_xp(10),
         comp.C_thorn(1),\
         comp.C_monster()
         ],constructor(fox_constructor))
@@ -220,7 +263,7 @@ def fill_object_storage():
         comp.C_sprite([
             "[']"
         ]),\
-        comp.C_bomb(10, 10)
+        comp.C_bomb(10, 7)
     ],constructor(bomb_constructor))
 
     Object_storage().add("Misc", "Explosion", [\
@@ -228,16 +271,137 @@ def fill_object_storage():
         comp.C_rectangle(None, None),\
         comp.C_hitbox(None, None, True),\
         comp.C_thorn(1),\
-        comp.C_lifetime(10)\
+        comp.C_enemy(),
+        comp.C_lifetime(7)\
         ],constructor(explosion_constructor))
 
     Object_storage().add("Projectile", "Bullet",[\
         comp.C_bullet(None, 0.3),\
         comp.C_transform(None, None),\
         comp.C_sprite(["*"]),\
+        comp.C_enemy(),
         comp.C_hitbox(1, 1),\
         comp.C_thorn(1)
     ],constructor(bullet_constructor))
+
+    Object_storage().add("Misc", "Spinning-swords",[
+        comp.C_transform(None, None),
+        comp.C_enemythorn(10),
+        comp.C_hitbox(13, 11),
+        comp.C_follow((-4, -4)),
+        comp.C_child_of(None),
+        comp.C_sprite(None),
+        comp.C_animation([[
+            "",
+            "!!!!!!!!!#",
+            "!!!!!!!!!!#",
+            "###!!!!!!!#",
+            "!!!#!!!!!#",
+            "!!!!!!!!!",
+            "!!!#!!!!!#",
+            "!!#!!!!!!!###",
+            "!!#",
+            "!!!#",
+            ""
+            ],[
+            "",
+            "!!!!!!!!!!!!#",
+            "##!!!!!!!!!!#",
+            "!!##!!!!!!!#",
+            "!!!#!!!!!##",
+            "!!!!!!!!!",
+            "!!##!!!!!#",
+            "!!#!!!!!!##",
+            "!#!!!!!!!!!##",
+            "!#",
+            ""
+            ],[
+            "",
+            "",
+            "!###",
+            "!!!!#!!!!!!#",
+            "!!!!!!!!!!!#",
+            "!!##!!!!!##",
+            "!#!!!!!!",
+            "!#!!!!!#",
+            "!!!!!!!!###",
+            "",
+            ""
+            ],[
+            "",
+            "!!##",
+            "!!!!##",
+            "!!!!!#!!!!!!#",
+            "!!!!!!!!!!!#",
+            "!!##!!!!!##",
+            "!#!!!!!!",
+            "#!!!!!#",
+            "!!!!!!##",
+            "!!!!!!!!##",
+            ""
+            ],[
+            "",
+            "!!!!##",
+            "!!!!!!#",
+            "!!!!!!#",
+            "!!!!!!!!!!!!#",
+            "!###!!!!!###",
+            "#!!!!!!!",
+            "!!!!!!#",
+            "!!!!!!#",
+            "!!!!!!!##",
+            ""
+            ],[
+            "",
+            "!!!!!##",
+            "!!!!!!!#",
+            "!!!!!!!#",
+            "!###!!!!",
+            "#!!!!!!!!!!!#",
+            "!!!!!!!!!###",
+            "!!!!!#",
+            "!!!!!#",
+            "!!!!!!##"
+            "",
+            ],[
+            "!!!!!!!!!!#",
+            "!!!!!!!!!!#",
+            "!!!!!!!!!#",
+            "##!!!!!!##",
+            "!!##!!!!",
+            "!!!!!!!!!!!##",
+            "!!!!!!!!!##",
+            "!!!##",
+            "!!!#",
+            "!!#",
+            "!!#"
+            ],[
+            "",
+            "!!!!!!!!!#",
+            "!!!!!!!!!!#",
+            "###!!!!!!!#",
+            "!!!#!!!!!#",
+            "!!!!!!!!!",
+            "!!!#!!!!!#",
+            "!!#!!!!!!!###",
+            "!!#",
+            "!!!#",
+            ""
+            ],[
+            "",
+            "!!!!!!!!!!!!#",
+            "##!!!!!!!!!!#",
+            "!!##!!!!!!!#",
+            "!!!#!!!!!##",
+            "!!!!!!!!!",
+            "!!##!!!!!#",
+            "!!#!!!!!!##",
+            "!#!!!!!!!!!##",
+            "!#",
+            ""
+            ]
+        ])
+    ],constructor(spinning_swords_constructor))
 
     Object_storage().add("Misc", "Sword",[\
         comp.C_transform(None, None),\
