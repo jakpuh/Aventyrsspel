@@ -1,5 +1,10 @@
 import core.core as core
 
+class Add_component(core.Event):
+    def __init__(self, component_type, entity):
+        self.component_type = component_type
+        self.entity = entity
+
 class Tick_event(core.Event):
     pass
 

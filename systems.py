@@ -14,6 +14,8 @@ class H_scout():
         self.event_handler.dispatch_event(evt.Log_event("scout", rand.uniform(-1, 1)))
         [comp_child] = event.entity1.query_components([comp.C_child_of])
         [comp_tran] = event.entity2.query_components([comp.C_transform])
+        if (len(comp_child.parent.query_components([comp.C_target])) == 0):
+            self.event_handler.dispatch_event(evt.Add_component(comp.C_target, comp_child.parent))
         comp_child.parent.add_component(comp.C_target((comp_tran.x, comp_tran.y)))
         self.event_handler.dispatch_event(evt.Target_event(comp_child.parent))
 
@@ -168,40 +170,57 @@ class S_ghost(core.System):
         event.entity.remove_component(comp.C_ai) 
 
 class S_gangster(core.System):
-    component_mask = [comp.C_gangster, comp.C_transform, comp.C_target]
+    component_mask = []
+
+    def __init__(self, event_handler: core.Event_handler, world: core.World):
+        super().__init__()
+
+    def run(self, dt):
+        pass
+
+class S_shoot(core.System):
+    component_mask = [comp.C_shoot, comp.C_transform, comp.C_target]
 
     def __init__(self, event_handler: core.Event_handler, world: core.World):
         super().__init__()
         self.event_handler = event_handler
         self.world = world
 
-    def run(self, dt):
-        for entity in self.registered_entities:
-            [comp_gang] = entity.query_components([comp.C_gangster])
-            self.event_handler.dispatch_event(evt.Log_event("Reload ticks", comp_gang.reload_ticks))
+    def _delay_next_shoot(self, entity, delay):
+        [comp_shoot] = entity.query_components([comp.C_shoot])
+        [comp_delay] = entity.query_components([comp.C_delay])
+        actions = {
+            "Add-shoot": (lambda entity: entity.add_component(comp_shoot), delay)
+        }
+        entity.remove_component(comp.C_shoot)
+        for key,action in actions.items():
+            if key not in comp_delay.named_actions:
+                comp_delay.named_actions[key] = action
 
-    def on_tick_event(self, event):
+    def run(self, dt):
+        pass
+
+    def on_tick_event(self, dt):
         # TODO: make the gangster run away when player is to close
         for entity in self.registered_entities:
-            [comp_target, comp_tran, comp_gangster] = entity.query_components([comp.C_target, comp.C_transform, comp.C_gangster])
+            [comp_target, comp_tran, comp_shoot] = entity.query_components([comp.C_target, comp.C_transform, comp.C_shoot])
             angle = math.atan((comp_target.target[1] - comp_tran.y) / (comp_target.target[0] - comp_tran.x))
             dir = angle + (0 if comp_target.target[0] > comp_tran.x else math.pi)
             Object_storage().clone(self.world, "Projectile", "Bullet", [dir, (comp_tran.x, comp_tran.y)])
 
-            [comp_delay] = entity.query_components([comp.C_delay])
-            actions = {
-                "Add-gangster": (lambda entity: entity.add_component(comp.C_gangster(comp_gangster.fire_rate)), 20),
-            }
-            entity.remove_component(comp.C_gangster)
-            for key,action in actions.items():
-                if key not in comp_delay.named_actions:
-                    comp_delay.named_actions[key] = action
-        
+            if comp_shoot.current_burst_shot == comp_shoot.burst_size:
+                next_shot_delay = comp_shoot.fire_rate
+                comp_shoot.current_burst_shot = 1
+            else:
+                next_shot_delay = comp_shoot.BURST_TICKS
+                comp_shoot.current_burst_shot += 1
+
+            self._delay_next_shoot(entity, next_shot_delay)
+
     def on_target_event(self, event: evt.Target_event):
         comp_gangster = event.entity.query_components([comp.C_gangster])
         if len(comp_gangster) == 0:
             return
-        event.entity.remove_component(comp.C_ai) 
 
         [comp_delay] = event.entity.query_components([comp.C_delay])
         actions = {
@@ -209,6 +228,16 @@ class S_gangster(core.System):
             "Add-ai": (lambda entity: entity.add_component(comp.C_ai(0.01)), 30)
         }
         comp_delay.named_actions.update(actions)
+    
+    def on_add_component_event(self, event: evt.Add_component):
+        comp_shoot = event.entity.query_components([comp.C_shoot])
+        if len(comp_shoot) == 0:
+            return
+        if (event.component_type != comp.C_target):
+            return
+
+        event.entity.remove_component(comp.C_ai) 
+        self._delay_next_shoot(event.entity, comp_shoot[0].fire_rate)
 
 class S_boomer(core.System):
     component_mask = [comp.C_boomer, comp.C_transform]
@@ -221,15 +250,27 @@ class S_boomer(core.System):
     def run(self, dt):
         pass
 
+class S_throw_bombs(core.System):
+    component_mask = [comp.C_throw_bombs, comp.C_transform]
+
+    def __init__(self, event_handler: core.Event_handler, world):
+        super().__init__()
+        self.event_handler = event_handler
+        self.world = world
+    
+    def run(self, dt):
+        pass
+
     def on_tick_event(self, event: evt.Tick_event):
         for entity in self.registered_entities:
-            [comp_boom, comp_tran] = entity.query_components([comp.C_boomer, comp.C_transform])
-            if comp_boom.reload_ticks <= 0:
-                comp_boom.reload_ticks = comp_boom.fire_rate
-                Object_storage().clone(self.world, "Projectile", "Bomb", [(rand.uniform(0.1,0.9), rand.uniform(0.1,0.9)), 0.1, 10]) 
-                continue
-            comp_boom.reload_ticks -= 1
+            Object_storage().clone(self.world, "Projectile", "Bomb", [(rand.uniform(0.1,0.9), rand.uniform(0.1,0.9)), 0.1, 10]) 
 
+            [comp_delay, comp_throw_bombs] = entity.query_components([comp.C_delay, comp.C_throw_bombs])
+            actions = {
+                "Add-throw_bombs": (lambda entity: entity.add_component(comp_throw_bombs), comp_throw_bombs.fire_rate)
+            }
+            comp_delay.named_actions.update(actions)
+            entity.remove_component(comp.C_throw_bombs)
 
 class S_fox(core.System):
     component_mask = [comp.C_fox, comp.C_transform]

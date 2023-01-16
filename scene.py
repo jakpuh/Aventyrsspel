@@ -37,6 +37,9 @@ class Scene():
         death_system = self.world.add_system(sys.S_death(self.event_handler))
         delay_system = self.world.add_system(sys.S_delay(self.event_handler))
         impenetrable_system = self.world.add_system(sys.S_impenetrable(self.event_handler))
+        shoot_system = self.world.add_system(sys.S_shoot(self.event_handler, self.world))
+        throw_bombs_system = self.world.add_system(sys.S_throw_bombs(self.event_handler, self.world))
+        
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
         player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
@@ -56,11 +59,11 @@ class Scene():
         self.event_handler.subscribe_event(core.Key_event, terminate_handler.on_key_event)
         self.event_handler.subscribe_event(core.Key_event, keypress_debug_handler.on_key_event)
         self.event_handler.subscribe_event(evt.Tick_event, blink_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event, gangster_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, shoot_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, ai_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, monkey_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, bomb_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event, boomer_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, throw_bombs_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, fox_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, animation_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, lifetime_system.on_tick_event)
@@ -83,7 +86,8 @@ class Scene():
         self.event_handler.subscribe_event(evt.Cleanup_event, delay_system.on_cleanup_event)
         self.event_handler.subscribe_event(evt.Destroy_entity_event, destroy_entity_system.on_destroy_entity_event)
         self.event_handler.subscribe_event(evt.Target_event, ghost_system.on_target_event)
-        self.event_handler.subscribe_event(evt.Target_event, gangster_system.on_target_event)
+        self.event_handler.subscribe_event(evt.Target_event, shoot_system.on_target_event)
+        self.event_handler.subscribe_event(evt.Add_component, shoot_system.on_add_component_event)
 
         all_dirs = ['U', 'D', 'L', 'R']
         no_wall_dirs = list(set(wall_dirs)^set(all_dirs))

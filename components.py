@@ -5,6 +5,13 @@ The systems will then iterate through the components of an entity and create beh
 '''
 import core.core as core
 
+class C_shoot(core.Component):
+    def __init__(self, fire_rate, burst_size):
+        self.fire_rate = fire_rate
+        self.burst_size = burst_size
+        self.current_burst_shot = 1
+        self.BURST_TICKS = 0    # ticks between each shot in the burst fire
+
 class C_target(core.Component):
     def __init__(self, target):
         self.target = target
@@ -40,20 +47,16 @@ class C_ghost(core.Component):
         self.speed = speed
 
 class C_gangster(core.Component):
-    SHOOTING = 0
-    OBSERVING = 1
-
-    def __init__(self, fire_rate):
-        self.fire_rate = fire_rate
-        self.state = self.OBSERVING
-        self.reload_ticks = fire_rate     # How many ticks this component should wait until it can shoot
-        self.disable = 0
-        self.target = None
+    pass
 
 class C_boomer(core.Component):
     def __init__(self, fire_rate):
         self.fire_rate = fire_rate
         self.reload_ticks = fire_rate
+
+class C_throw_bombs(core.Component):
+    def __init__(self, fire_rate):
+        self.fire_rate = fire_rate
 
 class C_fox(core.Component):
     IDLE = 0

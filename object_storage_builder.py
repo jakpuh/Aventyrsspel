@@ -182,7 +182,8 @@ def fill_object_storage():
     ],constructor(ghost_constructor))
 
     Object_storage().add("Monster", "Gangster", [\
-        comp.C_gangster(1),\
+        comp.C_gangster(),\
+        comp.C_shoot(20, 1),
         comp.C_ai(0.01),\
         comp.C_enemy(),
         comp.C_delay(),
@@ -228,6 +229,8 @@ def fill_object_storage():
         comp.C_boomer(10),\
         comp.C_ai(0.03),\
         comp.C_enemy(),
+        comp.C_delay(),
+        comp.C_throw_bombs(10),
         comp.C_transform(None, None),\
         comp.C_health(10),\
         comp.C_xp(25),
