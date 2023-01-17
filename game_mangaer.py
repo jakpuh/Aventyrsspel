@@ -3,7 +3,7 @@ import object_storage_builder as storage_builder
 from dungeon_generator import *
 from dungeon_generator_algorithm import *
 
-class Game_manager(core.Singleton):
+class Game_manager(metaclass=core.Singleton):
     '''
     Game_manager is a global singleton class which has the responsibility to control the high level aspects of the games loop.
     '''
