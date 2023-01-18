@@ -434,6 +434,28 @@ class S_bomb(core.System):
                 continue
             comp_bomb.det_time -= 1
 
+
+class S_chest(core.System):
+    component_mask = [comp.C_chest]
+
+    def __init__(self, event_handler: core.Event_handler, world):
+        super().__init__()
+        self.event_handler = event_handler
+        self. world = world
+
+    def run(self, dt):
+        pass
+
+    def on_collision_event(self, event: evt.Collision_event):
+        
+        [comp_chest] = event.entity1.query_components([comp.C_chest])
+        [comp_health] = event.entity2.query_components([comp.C_health])
+
+        comp_health.health += 10
+        
+        for entity in self.registered_entities:
+            self.event_handler.dispatch_event(evt.Destroy_entity_event(entity))
+
 # TODO: create system which destroys the entity and use event to call it, instead of directly call destroy_entity. This because we need to also destroy all the children
 
 class S_follow(core.System):

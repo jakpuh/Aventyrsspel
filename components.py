@@ -105,6 +105,10 @@ class C_monkey(core.Component):
         self.target = None
         self.phase_state = None
 
+class C_chest():
+    def __init__(self, reward_multiplier):
+        self.reward_multiplier = reward_multiplier
+
 class C_bullet(core.Component):
     def __init__(self, dir, speed):    # dir is a angle in radians
         self.dir = dir
