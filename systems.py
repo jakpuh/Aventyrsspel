@@ -272,64 +272,70 @@ class S_throw_bombs(core.System):
             comp_delay.named_actions.update(actions)
             entity.remove_component(comp.C_throw_bombs)
 
-class S_fox(core.System):
-    component_mask = [comp.C_fox, comp.C_transform]
+class H_fox():
+    def __init__(self, event_handler: core.Event_handler):
+        self.event_handler = event_handler
+    
+    def on_trigger_event(event: evt.Trigger_event):
+        comps = event.entity.query_components([comp.C_fox, comp.C_target])
+        if len(comps) != 2:
+            return
+
+        event.entity.disable_component(event.trigger_type)
+        event.entity.disable_component(comp.C_ai)
+        event.entity.add_component(comp.C_dash(0.2))  
+    
+    def on_finish_event(event: evt.Finished_event):
+        comps = event.entity.query_components([comp.C_fox])
+        if len(comps) == 0 or event.component != comp.C_dash:
+            return
+        
+        event.entity.remove_component(comp.C_dash)
+        [comp_delay] = event.entity.query_components([comp.C_delay])
+        comp_delay.actions.append(lambda entity: entity.enable_component(comp.C_ai), 10)
+        comp_delay.actions.append(lambda entity: entity.enable_component(comp.C_normal_trigger), 10)
+
+class S_dash(core.System):
+    component_mask = [comp.C_dash, comp.C_transform, comp.C_target]
 
     def __init__(self, event_handler: core.Event_handler):
         super().__init__()
         self.event_handler = event_handler
-    
+
     def run(self, dt):
-        for entity in self.registered_entities: 
-            return
-            [comp_tran, comp_fox, comp_ai] = entity.query_components([comp.C_transform, comp.C_fox, comp.C_ai])
-            if comp_fox.target == None or comp_fox.state != comp.C_fox.DASHING:
-                continue
+        for entity in self.registered_entities:
+            [comp_dash, comp_tran, comp_target] = entity.query_component([comp.C_dash, comp.C_transform])
+            if abs(comp_tran.x - comp_target.target[0]) < comp_target.speed * dt and abs(comp_tran.y - comp_target.target[1]) < comp_target.speed * dt:
+                self.event_handler.dispatch_event(evt.Finished_event, comp.C_dash)
+                return
 
-            if abs(comp_tran.x - comp_fox.target[0]) < comp_fox.speed * dt and abs(comp_tran.y - comp_fox.target[1]) < comp_fox.speed * dt:
-                comp_ai.disable = 5
-                comp_fox.state = comp.C_fox.IDLE
-                comp_fox.target = None
-                continue
-
-            angle = math.atan((comp_fox.target[1] - comp_tran.y) / (comp_fox.target[0] - comp_tran.x))
-            dir = angle + (0 if comp_fox.target[0] > comp_tran.x else math.pi)
-            hor_move = math.cos(dir) * dt * comp_fox.speed
-            ver_move = math.sin(dir) * dt * comp_fox.speed
+            angle = math.atan((comp_target.target[1] - comp_tran.y) / (comp_target.target[0] - comp_tran.x))
+            dir = angle + (0 if comp_target.target[0] > comp_tran.x else math.pi)
+            hor_move = math.cos(dir) * dt * comp_target.speed
+            ver_move = math.sin(dir) * dt * comp_target.speed
             comp_tran.last_x = comp_tran.x
             comp_tran.last_y = comp_tran.y
             comp_tran.x += hor_move
             comp_tran.y += ver_move
 
+class S_normal_trigger(core.System):
+    component_mask = [comp.C_normal_trigger]
+
+    def __init__(self, event_handler: core.Event_handler):
+        super().__init__()
+        self.event_handler = event_handler
+
+    def run(self, dt):
+        pass
 
     def on_tick_event(self, event: evt.Tick_event):
         for entity in self.registered_entities:
-            return 
-            [comp_fox, comp_ai] = entity.query_components([comp.C_fox, comp.C_ai])
-
-            match comp_fox.state:
-                case comp.C_fox.IDLE:
-                    K = 0.06 + comp_fox.sensitivity / 1000
-                    threshold = 1 / (1 + pow(math.e, -K * (comp_fox.ticks_since_last_dash - 2000 * K))) 
-                    if rand.uniform(0, 1) <= threshold:
-                        comp_fox.ticks_since_last_dash = 0
-                        if comp_fox.target == None:
-                            continue
-                        comp_fox.state = comp.C_fox.DASHING
-                        comp_ai.disable = float("inf")
-                    else:
-                        comp_fox.ticks_since_last_dash += 1
-
-    def on_collision_event(self, event: evt.Collision_event):
-        [entity1_tran] = event.entity1.query_components([comp.C_transform])
-        [entity2_child] = event.entity2.query_components([comp.C_child_of])
-        comp_fox = entity2_child.parent.query_components([comp.C_fox, comp.C_ai])
-        if len(comp_fox) != 2:
-            return
-        if comp_fox[0].state == comp.C_fox.DASHING:
-            return
-        comp_fox[0].target = [entity1_tran.x, entity1_tran.y]
-
+            [comp_fox] = entity.query_components([comp.C_fox])
+            K = 0.06 + comp_fox.sensitivity / 1000
+            threshold = 1 / (1 + pow(math.e, -K * (comp_fox.ticks_since_last_dash - 2000 * K))) 
+            if rand.uniform(0, 1) <= threshold:
+                comp_fox.ticks_since_last_dash = 0
+                self.event_handler.dispatch_event(evt.trigger_event(event))
 
 class S_monkey(core.System):
     component_mask = [comp.C_monkey, comp.C_transform, comp.C_fox, comp.C_boomer]
@@ -433,28 +439,6 @@ class S_bomb(core.System):
                 self.event_handler.dispatch_event(evt.Destroy_entity_event(entity))
                 continue
             comp_bomb.det_time -= 1
-
-
-class S_chest(core.System):
-    component_mask = [comp.C_chest]
-
-    def __init__(self, event_handler: core.Event_handler, world):
-        super().__init__()
-        self.event_handler = event_handler
-        self. world = world
-
-    def run(self, dt):
-        pass
-
-    def on_collision_event(self, event: evt.Collision_event):
-        
-        [comp_chest] = event.entity1.query_components([comp.C_chest])
-        [comp_health] = event.entity2.query_components([comp.C_health])
-
-        comp_health.health += 10
-        
-        for entity in self.registered_entities:
-            self.event_handler.dispatch_event(evt.Destroy_entity_event(entity))
 
 # TODO: create system which destroys the entity and use event to call it, instead of directly call destroy_entity. This because we need to also destroy all the children
 

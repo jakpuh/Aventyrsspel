@@ -4,7 +4,16 @@ A component is a attribute which defines a specific quality of an entity
 The systems will then iterate through the components of an entity and create behavior
 '''
 import core.core as core
+import math
 
+
+class C_normal_trigger(core.Component):
+    def __init__(self, sensitivity = 0):
+        self.sensitivity = sensitivity
+        self.ticks_since_last_trigger = 0
+class C_dash(core.Component):
+    def __init__(self, speed = 0.2):
+        self.speed = speed
 class C_shoot(core.Component):
     def __init__(self, fire_rate, burst_size):
         self.fire_rate = fire_rate
@@ -59,15 +68,8 @@ class C_throw_bombs(core.Component):
         self.fire_rate = fire_rate
 
 class C_fox(core.Component):
-    IDLE = 0
-    DASHING = 1
-
-    def __init__(self, sensitivity = 0):
-        self.target = None
-        self.state = self.IDLE
-        self.sensitivity = sensitivity  
-        self.ticks_since_last_dash = 0
-        self.speed = 0.2
+    def __init__(self):
+        self.trigger_type = None
     
 class C_delay(core.Component):
     def __init__(self, actions: list[tuple[2]] = [], named_actions: dict = {}):
@@ -104,10 +106,6 @@ class C_monkey(core.Component):
         self.state = C_monkey.IDLE
         self.target = None
         self.phase_state = None
-
-class C_chest():
-    def __init__(self, reward_multiplier):
-        self.reward_multiplier = reward_multiplier
 
 class C_bullet(core.Component):
     def __init__(self, dir, speed):    # dir is a angle in radians

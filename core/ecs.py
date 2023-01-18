@@ -58,6 +58,12 @@ class World():
         def query_components_all(self):
             return self.world.query_components_all(self.entity_id)
 
+        def disable_component(self, component_type):
+            return self.world.disable_component(self.entity_id,component_type)
+
+        def enable_component(self, component_type):
+            return self.world.enable_component(self.entity_id,component_type)
+
         def destroy_entity(self):
             self.world.destroy_entity(self.entity_id)
 
@@ -65,6 +71,7 @@ class World():
         self.systems = [] 
         self.entities = []  
         self.components = {} 
+        self.disabled_components = {}
         self.next_entity_id = 0
 
     def _entity_conforms_with_mask(self, entity, mask):
@@ -167,6 +174,32 @@ class World():
                     lst.append(current_component)      
         return lst
 
+    def disable_component(self, entity, component_type):
+        if not self._entity_exists(entity):
+            raise Exception(f"Entity '{entity}' does not exit")
+        component = self.query_components(entity, [component_type])  
+        if len(component) == 0:
+            raise Exception(f"Component type '{component_type}' can not be disabled")
+        self.remove_component(entity, component_type)  
+        if not component_type in self.disabled_components:
+            self.disabled_components[component_type] = []
+        for current_entity,current_component in self.disabled_components[component_type]:
+            current_type = type(current_component)
+            if (current_entity == entity and component_type == current_type):
+                raise Exception(f"Component type '{component_type}' is already disable")
+        self.disabled_components[component_type].append((entity, component))
+
+    def enable_component(self, entity, component_type):
+        if not self._entity_exists(entity):
+            raise Exception(f"Entity '{entity}' does not exit")
+        # TODO: don't assume component_type exists in disabled_components
+        for current_entity,current_component in self.disabled_components[component_type]:
+            current_type = type(current_component)
+            if (current_entity == entity and component_type == current_type):
+                self.add_component(entity, current_component)
+                self.disabled_components[component_type].remove((current_entity, current_component))
+                return
+        raise Exception(f"Component type '{component_type}' is already enabled")
 
     def add_system(self, system):
         if system in self.systems:

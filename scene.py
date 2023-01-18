@@ -39,8 +39,7 @@ class Scene():
         impenetrable_system = self.world.add_system(sys.S_impenetrable(self.event_handler))
         shoot_system = self.world.add_system(sys.S_shoot(self.event_handler, self.world))
         throw_bombs_system = self.world.add_system(sys.S_throw_bombs(self.event_handler, self.world))
-        chest_system = self.world.add_system(sys.S_chest(self.event_handler, self.world))
-
+        
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
         player_debug_system = self.world.add_system(sys.S_debug_player(self.event_handler))
@@ -82,7 +81,6 @@ class Scene():
         pred = lambda event: (utils.collision_event_pred_generator([comp.C_child_of, comp.C_scout], [comp.C_enemy])(event) and utils.collision_event_pred_generator_parent([comp.C_friend], None)(event)) or\
                              (utils.collision_event_pred_generator([comp.C_child_of, comp.C_scout], [comp.C_friend])(event) and utils.collision_event_pred_generator_parent([comp.C_enemy], None)(event))
         self.event_handler.subscribe_event(evt.Collision_event, scout_handler.on_collision_event, pred)
-        self.event_handler.subscribe_event(evt.Collision_event, chest_system.on_collision_event, utils.collision_event_pred_generator([comp.C_chest], [comp.C_health]))
         self.event_handler.subscribe_event(evt.Cleanup_event, blink_system.on_cleanup_event)
         self.event_handler.subscribe_event(evt.Cleanup_event, bullet_system.on_cleanup_event)
         self.event_handler.subscribe_event(evt.Cleanup_event, delay_system.on_cleanup_event)
@@ -148,7 +146,6 @@ class Challenge_scene(Scene):
         Object_storage().clone(self.world, "Projectile", "Bullet", [0.1, (0.75, 0.25)])
         Object_storage().clone(self.world, "Projectile", "Bomb", [(0.5, 0.5), 0.1, 20])
         Object_storage().clone(self.world, "Misc", "Sword", [(0.5, 0.7)])
-        Object_storage().clone(self.world, "Misc", "Chest", [(0.5, 0.8)])
 
                 
 class Puzzle_scene(Scene):

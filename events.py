@@ -1,6 +1,16 @@
 import core.core as core
 
-class Add_component(core.Event):
+class Finished_event(core.Component):
+    def __init__(self, entity, component):
+        self.entity = entity
+        self.component = component
+
+class Trigger_event(core.Event):
+    def __init__(self, entity, trigger_type):
+        self.entity = entity
+        self.trigger_type
+
+class Add_component_event(core.Event):
     def __init__(self, component_type, entity):
         self.component_type = component_type
         self.entity = entity
