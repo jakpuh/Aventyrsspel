@@ -33,12 +33,13 @@ class Scene():
         void_system = self.world.add_system(sys.S_void(self.event_handler, screen))
         bomb_system = self.world.add_system(sys.S_bomb(self.event_handler, self.world))
         boomer_system = self.world.add_system(sys.S_boomer(self.event_handler, self.world))
-        fox_system = self.world.add_system(sys.S_fox(self.event_handler))
         death_system = self.world.add_system(sys.S_death(self.event_handler))
         delay_system = self.world.add_system(sys.S_delay(self.event_handler))
         impenetrable_system = self.world.add_system(sys.S_impenetrable(self.event_handler))
         shoot_system = self.world.add_system(sys.S_shoot(self.event_handler, self.world))
         throw_bombs_system = self.world.add_system(sys.S_throw_bombs(self.event_handler, self.world))
+        dash_system = self.world.add_system(sys.S_dash(self.event_handler))
+        normal_trigger_system = self.world.add_system(sys.S_normal_trigger(self.event_handler))
         
         # ======== DEBUG =========
         rectangle_system = self.world.add_system(sys.S_debug_render_rectangle(screen))
@@ -47,6 +48,7 @@ class Scene():
         # text_system = self.world.add_system(sys.S_debug_render_text(right_sidebar))
         log_system = self.world.add_system(sys.S_logging(right_sidebar))
 
+        fox_handler = sys.H_fox(self.event_handler)
         terminate_handler = sys.H_terminate(self.exit_lst)
         exit_handler = sys.H_exit(self.exit_lst)
         thorn_handler = sys.H_thorn(self.event_handler)
@@ -64,18 +66,17 @@ class Scene():
         self.event_handler.subscribe_event(evt.Tick_event, monkey_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, bomb_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, throw_bombs_system.on_tick_event)
-        self.event_handler.subscribe_event(evt.Tick_event, fox_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, animation_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, lifetime_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, delay_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Tick_event, player_system.on_tick_event)
+        self.event_handler.subscribe_event(evt.Tick_event, normal_trigger_system.on_tick_event)
         self.event_handler.subscribe_event(evt.Log_event, log_system.on_log_event)
         # self.event_handler.subscribe_event(evt.Collision_event, ghost_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_scout, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, monkey_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_scout, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, impenetrable_system.on_collision_event, utils.collision_event_pred_generator([comp.C_impenetrable], [comp.C_transform]))
         self.event_handler.subscribe_event(evt.Collision_event, exit_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_exit], [comp.C_player]))
         self.event_handler.subscribe_event(evt.Collision_event, thorn_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_thorn], [comp.C_health]))
-        self.event_handler.subscribe_event(evt.Collision_event, fox_system.on_collision_event, utils.collision_event_pred_generator([comp.C_player, comp.C_transform], [comp.C_scout, comp.C_child_of]))
         self.event_handler.subscribe_event(evt.Collision_event, bullet_system.on_collision_event, utils.collision_event_pred_generator([comp.C_bullet], [comp.C_impenetrable]))
         self.event_handler.subscribe_event(evt.Collision_event, enemythorn_handler.on_collision_event, utils.collision_event_pred_generator([comp.C_enemythorn], [comp.C_health]))
         pred = lambda event: (utils.collision_event_pred_generator([comp.C_child_of, comp.C_scout], [comp.C_enemy])(event) and utils.collision_event_pred_generator_parent([comp.C_friend], None)(event)) or\
@@ -87,7 +88,9 @@ class Scene():
         self.event_handler.subscribe_event(evt.Destroy_entity_event, destroy_entity_system.on_destroy_entity_event)
         self.event_handler.subscribe_event(evt.Target_event, ghost_system.on_target_event)
         self.event_handler.subscribe_event(evt.Target_event, shoot_system.on_target_event)
-        self.event_handler.subscribe_event(evt.Add_component, shoot_system.on_add_component_event)
+        self.event_handler.subscribe_event(evt.Add_component_event, shoot_system.on_add_component_event)
+        self.event_handler.subscribe_event(evt.Trigger_event, fox_handler.on_trigger_event)
+        self.event_handler.subscribe_event(evt.Finished_event, fox_handler.on_finish_event)
 
         all_dirs = ['U', 'D', 'L', 'R']
         no_wall_dirs = list(set(wall_dirs)^set(all_dirs))

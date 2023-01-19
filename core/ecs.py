@@ -58,11 +58,17 @@ class World():
         def query_components_all(self):
             return self.world.query_components_all(self.entity_id)
 
-        def disable_component(self, component_type):
-            return self.world.disable_component(self.entity_id,component_type)
+        def disable_components(self, component_types):
+            return self.world.disable_component(self.entity_id,component_types)
 
-        def enable_component(self, component_type):
-            return self.world.enable_component(self.entity_id,component_type)
+        def enable_components(self, component_types):
+            return self.world.enable_component(self.entity_id,component_types)
+
+        def disable_group(self, component_types, group_name):
+            return self.world.disable_group(self.entity_id,component_types,group_name)
+
+        def enable_group(self, group_name):
+            return self.world.enable_group(self.entity_id,group_name)
 
         def destroy_entity(self):
             self.world.destroy_entity(self.entity_id)
@@ -174,32 +180,53 @@ class World():
                     lst.append(current_component)      
         return lst
 
-    def disable_component(self, entity, component_type):
-        if not self._entity_exists(entity):
-            raise Exception(f"Entity '{entity}' does not exit")
+    def _disable_component(self, entity, component_type, group_name):
         component = self.query_components(entity, [component_type])  
         if len(component) == 0:
             raise Exception(f"Component type '{component_type}' can not be disabled")
         self.remove_component(entity, component_type)  
         if not component_type in self.disabled_components:
             self.disabled_components[component_type] = []
-        for current_entity,current_component in self.disabled_components[component_type]:
-            current_type = type(current_component)
-            if (current_entity == entity and component_type == current_type):
+        for current_entity,_,__ in self.disabled_components[component_type]:
+            if current_entity == entity:
                 raise Exception(f"Component type '{component_type}' is already disable")
-        self.disabled_components[component_type].append((entity, component))
+        self.disabled_components[component_type].append((entity, component[0], group_name))
 
-    def enable_component(self, entity, component_type):
+    def disable_group(self, entity, component_types: list, group_name):
         if not self._entity_exists(entity):
             raise Exception(f"Entity '{entity}' does not exit")
+        for component in component_types:
+            self._disable_component(entity, component, group_name)
+
+    def disable_components(self, entity, component_types):
+        self.disable_component_group(entity, component_types, None)
+
+    def _enable_component(self, entity, component_type):
         # TODO: don't assume component_type exists in disabled_components
-        for current_entity,current_component in self.disabled_components[component_type]:
-            current_type = type(current_component)
-            if (current_entity == entity and component_type == current_type):
+        for current_entity,current_component,_ in self.disabled_components[component_type]:
+            if (current_entity == entity):
                 self.add_component(entity, current_component)
-                self.disabled_components[component_type].remove((current_entity, current_component))
+                self.disabled_components[component_type].remove((current_entity, current_component, _))
                 return
-        raise Exception(f"Component type '{component_type}' is already enabled")
+        # raise Exception(f"Component type '{component_type}' is already enabled")
+
+    def enable_components(self, entity, components):
+        if not self._entity_exists(entity):
+            raise Exception(f"Entity '{entity}' does not exit")
+        for component in components:
+            self._enable_component(entity, component) 
+
+    def enable_group(self, entity, group_name):
+        if not self._entity_exists(entity):
+            raise Exception(f"Entity '{entity}' does not exit")
+        remove_lst = []
+        for component_type in self.disabled_components:
+            for current_entity,current_component,current_name in self.disabled_components[component_type]:
+                if (current_entity == entity and current_name == group_name):
+                    self.add_component(entity, current_component)
+                    remove_lst.append((component_type, (current_entity, current_component, current_name)))
+        for comp in remove_lst:
+            self.disabled_components[comp[0]].remove(comp[1])
 
     def add_system(self, system):
         if system in self.systems:

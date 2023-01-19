@@ -15,7 +15,7 @@ class H_scout():
         [comp_child] = event.entity1.query_components([comp.C_child_of])
         [comp_tran] = event.entity2.query_components([comp.C_transform])
         if (len(comp_child.parent.query_components([comp.C_target])) == 0):
-            self.event_handler.dispatch_event(evt.Add_component(comp.C_target, comp_child.parent))
+            self.event_handler.dispatch_event(evt.Add_component_event(comp.C_target, comp_child.parent))
         comp_child.parent.add_component(comp.C_target((comp_tran.x, comp_tran.y)))
         self.event_handler.dispatch_event(evt.Target_event(comp_child.parent))
 
@@ -229,7 +229,7 @@ class S_shoot(core.System):
         }
         comp_delay.named_actions.update(actions)
     
-    def on_add_component_event(self, event: evt.Add_component):
+    def on_add_component_event(self, event: evt.Add_component_event):
         comp_shoot = event.entity.query_components([comp.C_shoot])
         if len(comp_shoot) == 0:
             return
@@ -276,24 +276,22 @@ class H_fox():
     def __init__(self, event_handler: core.Event_handler):
         self.event_handler = event_handler
     
-    def on_trigger_event(event: evt.Trigger_event):
+    def on_trigger_event(self, event: evt.Trigger_event):
         comps = event.entity.query_components([comp.C_fox, comp.C_target])
         if len(comps) != 2:
             return
 
-        event.entity.disable_component(event.trigger_type)
-        event.entity.disable_component(comp.C_ai)
+        event.entity.disable_group([event.trigger_type, comp.C_ai], "AI")
         event.entity.add_component(comp.C_dash(0.2))  
     
-    def on_finish_event(event: evt.Finished_event):
+    def on_finish_event(self, event: evt.Finished_event):
         comps = event.entity.query_components([comp.C_fox])
         if len(comps) == 0 or event.component != comp.C_dash:
             return
         
         event.entity.remove_component(comp.C_dash)
         [comp_delay] = event.entity.query_components([comp.C_delay])
-        comp_delay.actions.append(lambda entity: entity.enable_component(comp.C_ai), 10)
-        comp_delay.actions.append(lambda entity: entity.enable_component(comp.C_normal_trigger), 10)
+        comp_delay.actions.append((lambda entity: entity.enable_group("AI"), 10))
 
 class S_dash(core.System):
     component_mask = [comp.C_dash, comp.C_transform, comp.C_target]
@@ -304,15 +302,15 @@ class S_dash(core.System):
 
     def run(self, dt):
         for entity in self.registered_entities:
-            [comp_dash, comp_tran, comp_target] = entity.query_component([comp.C_dash, comp.C_transform])
-            if abs(comp_tran.x - comp_target.target[0]) < comp_target.speed * dt and abs(comp_tran.y - comp_target.target[1]) < comp_target.speed * dt:
-                self.event_handler.dispatch_event(evt.Finished_event, comp.C_dash)
+            [comp_dash, comp_tran, comp_target] = entity.query_components([comp.C_dash, comp.C_transform, comp.C_target])
+            if abs(comp_tran.x - comp_target.target[0]) < comp_dash.speed * dt and abs(comp_tran.y - comp_target.target[1]) < comp_dash.speed * dt:
+                self.event_handler.dispatch_event(evt.Finished_event(entity, comp.C_dash))
                 return
 
             angle = math.atan((comp_target.target[1] - comp_tran.y) / (comp_target.target[0] - comp_tran.x))
             dir = angle + (0 if comp_target.target[0] > comp_tran.x else math.pi)
-            hor_move = math.cos(dir) * dt * comp_target.speed
-            ver_move = math.sin(dir) * dt * comp_target.speed
+            hor_move = math.cos(dir) * dt * comp_dash.speed
+            ver_move = math.sin(dir) * dt * comp_dash.speed
             comp_tran.last_x = comp_tran.x
             comp_tran.last_y = comp_tran.y
             comp_tran.x += hor_move
@@ -330,12 +328,14 @@ class S_normal_trigger(core.System):
 
     def on_tick_event(self, event: evt.Tick_event):
         for entity in self.registered_entities:
-            [comp_fox] = entity.query_components([comp.C_fox])
-            K = 0.06 + comp_fox.sensitivity / 1000
-            threshold = 1 / (1 + pow(math.e, -K * (comp_fox.ticks_since_last_dash - 2000 * K))) 
+            [comp_trig] = entity.query_components([comp.C_normal_trigger])
+            K = 0.06 + comp_trig.sensitivity / 1000
+            threshold = 1 / (1 + pow(math.e, -K * (comp_trig.ticks_since_last_trigger - 2000 * K))) 
             if rand.uniform(0, 1) <= threshold:
-                comp_fox.ticks_since_last_dash = 0
-                self.event_handler.dispatch_event(evt.trigger_event(event))
+                comp_trig.ticks_since_last_trigger = 0
+                self.event_handler.dispatch_event(evt.Trigger_event(entity, comp.C_normal_trigger))
+            else:
+                comp_trig.ticks_since_last_trigger += 1
 
 class S_monkey(core.System):
     component_mask = [comp.C_monkey, comp.C_transform, comp.C_fox, comp.C_boomer]

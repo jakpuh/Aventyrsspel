@@ -1,5 +1,6 @@
 import core.core as core
 
+# Maybe create a message event instead
 class Finished_event(core.Component):
     def __init__(self, entity, component):
         self.entity = entity
@@ -8,7 +9,7 @@ class Finished_event(core.Component):
 class Trigger_event(core.Event):
     def __init__(self, entity, trigger_type):
         self.entity = entity
-        self.trigger_type
+        self.trigger_type = trigger_type
 
 class Add_component_event(core.Event):
     def __init__(self, component_type, entity):

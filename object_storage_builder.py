@@ -246,6 +246,7 @@ def fill_object_storage():
 
     Object_storage().add("Monster", "Fox", [\
         comp.C_fox(),\
+        comp.C_normal_trigger(0),
         comp.C_ai(0.05),\
         comp.C_enemy(),
         comp.C_transform(None, None),\
@@ -255,6 +256,7 @@ def fill_object_storage():
             "\<> <>/",
             "!!\./"
         ]),\
+        comp.C_delay(),
         comp.C_hitbox(7,3),\
         comp.C_xp(10),
         comp.C_thorn(1),\
