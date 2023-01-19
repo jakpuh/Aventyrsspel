@@ -287,17 +287,6 @@ def fill_object_storage():
         comp.C_thorn(1)
     ],constructor(bullet_constructor))
 
-    Object_storage().add("Misc", "Chest", [\
-        comp.C_chest(1),\
-        comp.C_transform(None, None),\
-        comp.C_sprite(["   __----__",
-                       " /          \ ",
-                       "|-----O------|",
-                       "|            |",
-                       "|____________|"]),\
-        comp.C_hitbox(14, 5),\
-        ],constructor(transform_constructor))
-
     Object_storage().add("Misc", "Spinning-swords",[
         comp.C_transform(None, None),
         comp.C_enemythorn(10),
