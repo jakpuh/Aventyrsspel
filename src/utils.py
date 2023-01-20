@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(1, 'core')
 import core
-import components as comp
+import components.components as comp
 import events as evt
 from object_storage import Object_storage
 import random as rand
@@ -34,7 +34,7 @@ def collision_event_pred_generator(entity1_comps: list, entity2_comps: list):
         return False
     return _
 
-def collision_event_pred_generator_parent(entity1_parent_comps: list, entity2_parent_comps: list):
+def collision_event_pred_parent_generator(entity1_parent_comps: list, entity2_parent_comps: list):
     '''
     Generates and returns a predicate function for callables who subscribe to collision events
     This predicate will check if the entity1 / entity2 parents (entity1 / entity2 have to have the child_of component) have the components in the entity1_parent_comps / entity2_parent_comps

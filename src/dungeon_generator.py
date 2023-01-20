@@ -3,8 +3,9 @@ from room import Room
 import scene
 
 class Dungeon_generator():
-    def __init__(self, layout_generator: Layout_generator):
+    def __init__(self, layout_generator: Layout_generator, size = (3, 3)):
         self.layout_generator = layout_generator
+        self.size = size
 
     def _find_longest_path(self, adj, node, seen) -> tuple[2]: 
         if node in seen:
@@ -19,8 +20,8 @@ class Dungeon_generator():
                 max_node = res[1]
         return (max + 1, max_node)
 
-    def generate(self, screen, left_sidebar, right_sidebar) -> list[Room]:
-        adj_layout = self.layout_generator.generate(3, 3)
+    def generate(self, screen, left_sidebar, right_sidebar, difficulty) -> list[Room]:
+        adj_layout = self.layout_generator.generate(*self.size)
         adj_rooms = []
         [_, boss_room] = self._find_longest_path(adj_layout, 0, set())
         for i,node in enumerate(adj_layout):
@@ -31,7 +32,7 @@ class Dungeon_generator():
                 else:
                     raise Exception("Invalid neighbour direction")
             if i == 0:
-                room.scene = scene.Empty_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar)
+                room.scene = scene.Empty_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar, difficulty)
             elif i == boss_room:
                 INVERTED_SIDES = {
                     'R': 'L',
@@ -40,9 +41,14 @@ class Dungeon_generator():
                     'D': 'U'
                 }
                 exit_side = INVERTED_SIDES[list(room.neighbours.keys())[0]] 
-                room.scene = scene.Boss_scene(room.neighbours.keys(), exit_side, screen, left_sidebar, right_sidebar)
+                room.scene = scene.Boss_scene(room.neighbours.keys(), exit_side, screen, left_sidebar, right_sidebar, difficulty)
             else:
-                room.scene = scene.Challenge_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar)
+                if rand.uniform(0, 1) < 0.2:
+                    room.scene = scene.Chest_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar, difficulty)
+                elif rand.uniform(0, 1) < 0.05:
+                    room.scene = scene.Empty_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar, difficulty)
+                else:
+                    room.scene = scene.Challenge_scene(room.neighbours.keys(), screen, left_sidebar, right_sidebar, difficulty)
             adj_rooms.append(room)
 
         return adj_rooms

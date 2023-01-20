@@ -59,10 +59,10 @@ class World():
             return self.world.query_components_all(self.entity_id)
 
         def disable_components(self, component_types):
-            return self.world.disable_component(self.entity_id,component_types)
+            return self.world.disable_components(self.entity_id,component_types)
 
         def enable_components(self, component_types):
-            return self.world.enable_component(self.entity_id,component_types)
+            return self.world.enable_components(self.entity_id,component_types)
 
         def disable_group(self, component_types, group_name):
             return self.world.disable_group(self.entity_id,component_types,group_name)
@@ -108,6 +108,9 @@ class World():
         for component_type in self.components:
             self.remove_component(entity, component_type)
         self.entities.remove(entity)
+
+    def destroy_all_entities(self):
+        self.entities = []
 
     def get_entities(self, mask):
         lst = []
@@ -199,7 +202,7 @@ class World():
             self._disable_component(entity, component, group_name)
 
     def disable_components(self, entity, component_types):
-        self.disable_component_group(entity, component_types, None)
+        self.disable_group(entity, component_types, None)
 
     def _enable_component(self, entity, component_type):
         # TODO: don't assume component_type exists in disabled_components

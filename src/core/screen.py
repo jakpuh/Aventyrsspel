@@ -1,20 +1,18 @@
 import curses
 import event_handler as es
-import singleton
 from numbers import Number
 from typing import Tuple
 import regex as re
-import time
 
 class Key_event(es.Event):
     def __init__(self, key):
         self.key = key
 
+# Represents a window which we can draw to using coordinates between 0 and 1
 class Window(): 
     def __init__(self, window):
         self.window = window
         self.children = []
-        # self.window.bkgd('.')
     
     def refresh(self):
         self.window.refresh()
@@ -27,7 +25,6 @@ class Window():
 
         dist_to_right = max_width - abs_x 
         row_split = re.split(r'(!+)', row[min(len(row),max(0, -abs_x)):len(row)])
-        #row_split = re.split(r'(\s+)', row[min(len(row),max(0, -abs_x)):-1])
 
         for seq in row_split:
             if abs_x >= max_width:
@@ -35,23 +32,6 @@ class Window():
             if len(seq) != 0 and seq[0] != '!':
                 self.window.addstr(abs_y, abs_x, seq)
             abs_x += len(seq)
-
-        # if len(row_split) >= 1 and len(row_split[0]) != 0:
-        #     if row_split[0][0] == ' ':
-        #         abs_x += len(row_split[0])
-        #         row = row[len(row_split[0]):-1]
-        # if len(row_split) >= 2 and len(row_split[-1]) != 0:
-        #     if row_split[-1][0] == ' ':
-        #         row = row[0:len(row)-len(row_split[-1])] 
-        # for seq in row_split:
-        #     if abs_x >= max_width:
-        #         break
-        #     if len(seq) != 0 and seq[0] != ' ':
-        #         self.window.addstr(abs_y, abs_x, seq)
-        #     abs_x += len(seq)
-                
-        #time.sleep(1)
-        #self.window.addstr(max(abs_y, 0), max(abs_x, 0), row[0:min(len(row), dist_to_right)])
 
     def draw_texture(self, texture, rel_x, rel_y):
         [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y)
@@ -82,8 +62,6 @@ class Window():
         self.window.resize(1, 1) # otherwise mvwin will move the window out of bounds which will make the program crash
         self.window.mvwin(abs_y, abs_x)
         self.window.resize(abs_height, abs_width)
-        # del self.window
-        # self.window = self.window.derwin(abs_height, abs_width, abs_y, abs_x)
         for child in self.children:
             child[0]._resize(int(child[1][0] * abs_width), int(child[1][1] * abs_height), int(child[1][2] * abs_width), int(child[1][3] * abs_height))
 
@@ -102,6 +80,7 @@ class Window():
         [abs_x, abs_y] = self.rel_to_abs(rel_x, rel_y) 
         self.draw_row(text, abs_x, abs_y)
 
+# Is the main windows which all the other windows will be children of
 class Screen(Window):
     def _wrapper(self, stdscr, func):
         curses.curs_set(0)
