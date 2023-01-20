@@ -282,7 +282,8 @@ class H_fox():
             return
 
         event.entity.disable_group([event.trigger_type, comp.C_ai], "AI")
-        event.entity.add_component(comp.C_dash(0.2))  
+        [comp_delay] = event.entity.query_components([comp.C_delay])
+        comp_delay.actions.append((lambda entity: entity.add_component(comp.C_dash(0.3)), 10))
     
     def on_finish_event(self, event: evt.Finished_event):
         comps = event.entity.query_components([comp.C_fox])
