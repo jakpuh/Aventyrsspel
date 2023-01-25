@@ -1,6 +1,6 @@
 # Aventyrsspel
 
-Simple rogue like written in Python 3.x
+Simple rogue like game written in Python 3.x
 
 ## How to run
 ```
